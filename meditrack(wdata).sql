@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 11, 2025 at 01:04 AM
+-- Generation Time: Apr 14, 2025 at 09:53 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `check`
+-- Database: `meditrack`
 --
 
 -- --------------------------------------------------------
@@ -49,7 +49,9 @@ INSERT INTO `appointment` (`appointment_id`, `date`, `time`, `status`, `notes`, 
 (4, '2025-05-04', '11:00:00', 'Scheduled', 'Consultation for teeth cleaning', 2, 2, 2),
 (5, '2025-05-05', '13:00:00', 'Scheduled', 'Routine eye exam', 1, 3, 1),
 (6, '2025-05-06', '15:00:00', 'Scheduled', 'Follow-up for eye exam', 1, 3, 1),
-(7, '2025-05-07', '09:30:00', 'Scheduled', 'Dental checkup', 2, 2, 2);
+(7, '2025-05-07', '09:30:00', 'Scheduled', 'Dental checkup', 2, 2, 2),
+(112, '2025-04-22', '13:00:00', 'completed', 'Routine check-up completed successfully', 12, 3, 2),
+(122, '2025-04-30', '13:00:00', 'scheduled', 'Cancer Screening', 12, 3, 2);
 
 -- --------------------------------------------------------
 
@@ -215,7 +217,8 @@ CREATE TABLE `patient` (
 
 INSERT INTO `patient` (`patient_id`, `first_name`, `last_name`, `phone`, `email`, `address`) VALUES
 (1, 'Michael', 'Johnson', '555-1111', 'mjohnson@email.com', '123 Oak St, New York, NY'),
-(2, 'Sarah', 'Williams', '555-2222', 'swilliams@email.com', '456 Pine St, Los Angeles, CA');
+(2, 'Sarah', 'Williams', '555-2222', 'swilliams@email.com', '456 Pine St, Los Angeles, CA'),
+(12, 'Paige', 'Ogden', '1234567890', 'podgen@kent.edu', 'a place');
 
 -- --------------------------------------------------------
 
