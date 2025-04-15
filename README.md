@@ -18,3 +18,14 @@ A version with example data exists in meditrack(wdata).sql
 *They are intended to be run on the wdata database* since the reference real data points
 
 However there structure is not dependent on the data outside of the specific fields like id, time, etc being specific instances
+
+# Compiling the app & connecting database
+
+open XAMPP & start **both** apache & mysql
+
+create a new database called 'meditrack' and use the import tool to import meditrack(wdata).sql
+
+run the flask app with:
+```
+python ./app.py
+```
