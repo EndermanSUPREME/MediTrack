@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard</title>
+</head>
+<body>
+    <h1>Doctor Dashboard</h1>
+    <form method="GET" action="{{ url_for('doctor_dashboard') }}">
+        <label for="filter_date">Filter by Date:</label>
+        <input type="date" id="filter_date" name="filter_date" value="{{ filter_date }}">
+        <br>
+        <label for="filter_hospital">Filter by Hospital:</label>
+        <select id="filter_hospital" name="filter_hospital">
+            <option value="">All Hospitals</option>
+            {% for hospital in hospitals %}
+                <option value="{{ hospital.hospital_id }}" {% if filter_hospital == hospital.hospital_id %}selected{% endif %}>
+                    {{ hospital.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit">Filter</button>
+    </form>
+    <h2>Appointments</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Status</th>
+                <th>Hospital</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.date }}</td>
+                    <td>{{ appointment.time }}</td>
+                    <td>{{ appointment.patient_first_name }} {{ appointment.patient_last_name }}</td>
+                    <td>{{ appointment.status }}</td>
+                    <td>{{ appointment.hospital_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
