@@ -28,14 +28,15 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `appointment` (
-  `appointment_id` int(11) NOT NULL,
+  `appointment_id` int(11) NOT NULL AUTO_INCREMENT,
   `date` date DEFAULT NULL,
   `time` time DEFAULT NULL,
   `status` varchar(100) DEFAULT NULL,
   `notes` varchar(100) DEFAULT NULL,
   `patient_id` int(11) DEFAULT NULL,
   `doctor_id` int(11) DEFAULT NULL,
-  `hospital_id` int(11) DEFAULT NULL
+  `hospital_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`appointment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -60,11 +61,12 @@ INSERT INTO `appointment` (`appointment_id`, `date`, `time`, `status`, `notes`, 
 --
 
 CREATE TABLE `billing_cost` (
-  `billing_cost_id` int(11) NOT NULL,
+  `billing_cost_id` int(11) NOT NULL AUTO_INCREMENT,
   `total_amount` double DEFAULT NULL,
   `payment_status` varchar(100) DEFAULT NULL,
   `insurance_claimed` tinyint(1) DEFAULT NULL,
-  `insurance_covered` double DEFAULT NULL
+  `insurance_covered` double DEFAULT NULL,
+  PRIMARY KEY (`billing_cost_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -91,12 +93,13 @@ INSERT INTO `billing_cost` (`billing_cost_id`, `total_amount`, `payment_status`,
 --
 
 CREATE TABLE `doctor` (
-  `doctor_id` int(11) NOT NULL,
+  `doctor_id` int(11) NOT NULL AUTO_INCREMENT,
   `first_name` varchar(100) DEFAULT NULL,
   `last_name` varchar(100) DEFAULT NULL,
   `speciality` int(11) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL
+  `email` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`doctor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -180,10 +183,11 @@ INSERT INTO `hospital_doctors` (`doctor_id`, `hospital_id`) VALUES
 --
 
 CREATE TABLE `insurance_provider` (
-  `insurance_id` int(11) NOT NULL,
+  `insurance_id` int(11) NOT NULL AUTO_INCREMENT,
   `insurance_name` varchar(100) DEFAULT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
-  `insurance_type` int(11) DEFAULT NULL
+  `insurance_type` int(11) DEFAULT NULL,
+  PRIMARY KEY (`insurance_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -203,12 +207,13 @@ INSERT INTO `insurance_provider` (`insurance_id`, `insurance_name`, `contact_num
 --
 
 CREATE TABLE `patient` (
-  `patient_id` int(11) NOT NULL,
+  `patient_id` int(11) NOT NULL AUTO_INCREMENT,
   `first_name` varchar(100) DEFAULT NULL,
   `last_name` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
-  `address` varchar(100) DEFAULT NULL
+  `address` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`patient_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -227,11 +232,12 @@ INSERT INTO `patient` (`patient_id`, `first_name`, `last_name`, `phone`, `email`
 --
 
 CREATE TABLE `patient_billing` (
-  `bill_id` int(11) NOT NULL,
+  `bill_id` int(11) NOT NULL AUTO_INCREMENT,
   `billing_cost_id` int(11) DEFAULT NULL,
   `appointment_id` int(11) DEFAULT NULL,
   `patient_id` int(11) DEFAULT NULL,
-  `insurance_provider_id` int(11) DEFAULT NULL
+  `insurance_provider_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`bill_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -279,8 +285,9 @@ INSERT INTO `patient_insurance` (`patient_id`, `insurance_id`) VALUES
 --
 
 CREATE TABLE `professions` (
-  `professions_id` int(11) NOT NULL,
-  `type` varchar(100) DEFAULT NULL
+  `professions_id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`professions_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -302,7 +309,6 @@ INSERT INTO `professions` (`professions_id`, `type`) VALUES
 -- Indexes for table `appointment`
 --
 ALTER TABLE `appointment`
-  ADD PRIMARY KEY (`appointment_id`),
   ADD KEY `patient_id` (`patient_id`),
   ADD KEY `doctor_id` (`doctor_id`),
   ADD KEY `hospital_id` (`hospital_id`);
@@ -310,14 +316,12 @@ ALTER TABLE `appointment`
 --
 -- Indexes for table `billing_cost`
 --
-ALTER TABLE `billing_cost`
-  ADD PRIMARY KEY (`billing_cost_id`);
+-- No changes needed as primary key is already defined in table structure.
 
 --
 -- Indexes for table `doctor`
 --
 ALTER TABLE `doctor`
-  ADD PRIMARY KEY (`doctor_id`),
   ADD KEY `speciality` (`speciality`);
 
 --
@@ -344,20 +348,17 @@ ALTER TABLE `hospital_doctors`
 -- Indexes for table `insurance_provider`
 --
 ALTER TABLE `insurance_provider`
-  ADD PRIMARY KEY (`insurance_id`),
   ADD KEY `insurance_type` (`insurance_type`);
 
 --
 -- Indexes for table `patient`
 --
-ALTER TABLE `patient`
-  ADD PRIMARY KEY (`patient_id`);
+-- No changes needed as primary key is already defined in table structure.
 
 --
 -- Indexes for table `patient_billing`
 --
 ALTER TABLE `patient_billing`
-  ADD PRIMARY KEY (`bill_id`),
   ADD KEY `billing_cost_id` (`billing_cost_id`),
   ADD KEY `appointment_id` (`appointment_id`),
   ADD KEY `patient_id` (`patient_id`),
@@ -373,8 +374,7 @@ ALTER TABLE `patient_insurance`
 --
 -- Indexes for table `professions`
 --
-ALTER TABLE `professions`
-  ADD PRIMARY KEY (`professions_id`);
+-- No changes needed as primary key is already defined in table structure.
 
 --
 -- Constraints for dumped tables

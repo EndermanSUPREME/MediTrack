@@ -93,39 +93,74 @@ def register():
         username = request.form['username']
         password = request.form['password']
         role = request.form['role']
-        doctor_id = request.form.get('doctor_id')  # Optional, based on role
-        patient_id = request.form.get('patient_id')  # Optional, based on role
-        insurance_provider_id = request.form.get('insurance_provider_id')  # Optional, based on role
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        phone = request.form.get('phone')
+        email = request.form.get('email')
+        address = request.form.get('address')
+        speciality = request.form.get('speciality')
+        insurance_name = request.form.get('insurance_name')
+        contact_number = request.form.get('contact_number')
+        insurance_type = request.form.get('insurance_type')
 
         try:
-            # Generate bcrypt hash and validate it
+            # Generate bcrypt hash for the password
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             if not hashed_password.startswith('$2b$'):
-                raise ValueError("Generated hash is invalid")  # Ensure hash is in bcrypt format
+                raise ValueError("Generated hash is invalid")
 
             cur = mysql.connection.cursor()
 
-            # Insert into the `users` table based on the role
-            if role == 'Doctor' and doctor_id:
+            # Insert into the appropriate table based on the role
+            if role == 'Patient':
                 cur.execute("""
-                    INSERT INTO users (username, password, role, doctor_id)
-                    VALUES (%s, %s, %s, %s)
-                """, (username, hashed_password, role, doctor_id))
-            elif role == 'Patient' and patient_id:
+                    INSERT INTO patient (first_name, last_name, phone, email, address)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (first_name, last_name, phone, email, address))
+                mysql.connection.commit()
+                patient_id = cur.lastrowid  # Get the auto-generated patient_id
                 cur.execute("""
                     INSERT INTO users (username, password, role, patient_id)
                     VALUES (%s, %s, %s, %s)
                 """, (username, hashed_password, role, patient_id))
-            elif role == 'Insurance' and insurance_provider_id:
+
+            elif role == 'Doctor':
+                # Ensure speciality is valid and matches a professions_id
+                cur.execute("SELECT professions_id FROM professions WHERE professions_id = %s", (speciality,))
+                if not cur.fetchone():
+                    flash('Invalid specialty selected.')
+                    return render_template('register.html')
+
+                # Insert into the doctor table
+                cur.execute("""
+                    INSERT INTO doctor (first_name, last_name, speciality, phone, email)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (first_name, last_name, speciality, phone, email))
+                mysql.connection.commit()
+                doctor_id = cur.lastrowid  # Get the auto-generated doctor_id
+                cur.execute("""
+                    INSERT INTO users (username, password, role, doctor_id)
+                    VALUES (%s, %s, %s, %s)
+                """, (username, hashed_password, role, doctor_id))
+
+            elif role == 'Insurance':
+                cur.execute("""
+                    INSERT INTO insurance_provider (insurance_name, contact_number, insurance_type)
+                    VALUES (%s, %s, %s)
+                """, (insurance_name, contact_number, insurance_type))
+                mysql.connection.commit()
+                insurance_provider_id = cur.lastrowid  # Get the auto-generated insurance_id
                 cur.execute("""
                     INSERT INTO users (username, password, role, insurance_provider_id)
                     VALUES (%s, %s, %s, %s)
                 """, (username, hashed_password, role, insurance_provider_id))
+
             elif role == 'Billing Staff':
                 cur.execute("""
                     INSERT INTO users (username, password, role)
                     VALUES (%s, %s, %s)
                 """, (username, hashed_password, role))
+
             else:
                 flash('Invalid role or missing required fields.')
                 return render_template('register.html')
@@ -134,10 +169,22 @@ def register():
             cur.close()
             flash('User registered successfully!')
             return redirect(url_for('login'))
+
         except Exception as e:
             print(f"Error during registration: {e}")  # Debugging log
             flash('An error occurred during registration. Please try again.')
-    return render_template('register.html')
+            return render_template('register.html')
+
+    else:
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT professions_id, type FROM professions")
+            professions = cur.fetchall()
+            cur.close()
+        except Exception as e:
+            print(f"Error fetching professions: {e}")
+            professions = []
+        return render_template('register.html', professions=professions)
 
 @app.route('/logout')
 def logout():
