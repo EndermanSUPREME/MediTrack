@@ -5,9 +5,9 @@ import bcrypt  # Import bcrypt for password hashing
 app = Flask(__name__)
 
 # MySQL connection configuration for XAMPP
-app.config['MYSQL_HOST'] = 'localhost'  # XAMPP MySQL runs on localhost
-app.config['MYSQL_USER'] = 'root'       # Default XAMPP MySQL username
-app.config['MYSQL_PASSWORD'] = ''       # Default XAMPP MySQL password is empty
+app.config['MYSQL_HOST'] = '10.37.1.103'  # XAMPP MySQL runs on localhost
+app.config['MYSQL_USER'] = 'yoyojesus'       # Default XAMPP MySQL username
+app.config['MYSQL_PASSWORD'] = 'veryOkIrTIcA'       # Default XAMPP MySQL password is empty
 app.config['MYSQL_DB'] = 'meditrack'    # Replace with your local database name
 
 mysql = MySQL(app)
@@ -50,7 +50,19 @@ def show_patients():
     users = cur.fetchall()
     cur.close()
 
-    return render_template('check.html', patients=patients, users=users)
+    # Fetch doctors from the database
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT doctor_id, first_name, last_name, speciality, phone FROM doctor")
+    doctors = cur.fetchall()
+    cur.close()
+
+    # Fetch insurance providers from the database
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT insurance_id, insurance_name, insurance_type, contact_number FROM insurance_provider")
+    insurances = cur.fetchall()
+    cur.close()
+
+    return render_template('check.html', patients=patients, users=users, doctors=doctors, insurances=insurances)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -90,18 +102,30 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # Debugging: Log the form data received
+        print(f"Form data received: {request.form}")
+
         username = request.form['username']
         password = request.form['password']
         role = request.form['role']
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        phone = request.form.get('phone')
-        email = request.form.get('email')
-        address = request.form.get('address')
-        speciality = request.form.get('speciality')
-        insurance_name = request.form.get('insurance_name')
-        contact_number = request.form.get('contact_number')
-        insurance_type = request.form.get('insurance_type')
+
+        # Fetch role-specific fields
+        if role == 'Patient':
+            first_name = request.form.get('patient_first_name')
+            last_name = request.form.get('patient_last_name')
+            phone = request.form.get('patient_phone')
+            email = request.form.get('patient_email')
+            address = request.form.get('patient_address')
+        elif role == 'Doctor':
+            first_name = request.form.get('doctor_first_name')
+            last_name = request.form.get('doctor_last_name')
+            phone = request.form.get('doctor_phone')
+            email = request.form.get('doctor_email')
+            speciality = request.form.get('speciality')
+        elif role == 'Insurance':
+            insurance_name = request.form.get('insurance_name')
+            contact_number = request.form.get('contact_number')
+            insurance_type = request.form.get('insurance_type')
 
         try:
             # Generate bcrypt hash for the password
@@ -131,6 +155,9 @@ def register():
                     flash('Invalid specialty selected.')
                     return render_template('register.html')
 
+                # Debugging: Log the values being inserted into the doctor table
+                print(f"Inserting into doctor table: first_name={first_name}, last_name={last_name}, speciality={speciality}, phone={phone}, email={email}")
+
                 # Insert into the doctor table
                 cur.execute("""
                     INSERT INTO doctor (first_name, last_name, speciality, phone, email)
@@ -138,6 +165,10 @@ def register():
                 """, (first_name, last_name, speciality, phone, email))
                 mysql.connection.commit()
                 doctor_id = cur.lastrowid  # Get the auto-generated doctor_id
+
+                # Debugging: Log the values being inserted into the users table
+                print(f"Inserting into users table: username={username}, hashed_password={hashed_password}, role={role}, doctor_id={doctor_id}")
+
                 cur.execute("""
                     INSERT INTO users (username, password, role, doctor_id)
                     VALUES (%s, %s, %s, %s)

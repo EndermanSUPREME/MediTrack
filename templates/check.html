@@ -49,6 +49,50 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <h1 class="text-center mt-5">Doctor List</h1>
+        <table class="table table-bordered mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Specialization</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doctor in doctors %}
+                <tr>
+                    <td>{{ doctor[0] }}</td>
+                    <td>{{ doctor[1] }}</td>
+                    <td>{{ doctor[2] }}</td>
+                    <td>{{ doctor[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h1 class="text-center mt-5">Insurance List</h1>
+        <table class="table table-bordered mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Provider</th>
+                    <th>Plan</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for insurance in insurances %}
+                <tr>
+                    <td>{{ insurance[0] }}</td>
+                    <td>{{ insurance[1] }}</td>
+                    <td>{{ insurance[2] }}</td>
+                    <td>{{ insurance[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
