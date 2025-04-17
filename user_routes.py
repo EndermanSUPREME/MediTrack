@@ -49,7 +49,7 @@ def login():
             if user:
                 stored_password = user['password']
                 if not is_valid_bcrypt_hash(stored_password):
-                    print(f"Invalid bcrypt hash format for user: {username}")  # Debugging log
+                    print(f"Invalid bcrypt hash format for user: {username}")
                     flash('An error occurred. Please contact support.')
                     return render_template('login.html')
 
@@ -62,16 +62,16 @@ def login():
                         user['id']  # Default to the user ID for roles like Billing Staff
                     )
                     session['role'] = user['role']
-                    print(f"Login successful for user ID: {session['user_id']}, role: {user['role']}")  # Debugging log
+                    print(f"Login successful for user ID: {session['user_id']}, role: {user['role']}")
                     return redirect_to_dashboard(user['role'])
                 else:
                     flash('Invalid password')
-                    print("Invalid password")  # Debugging log
+                    print("Invalid password")
             else:
                 flash('Username not found')
-                print("Username not found")  # Debugging log
+                print("Username not found")
         except Exception as e:
-            print(f"Error during login: {e}")  # Debugging log
+            print(f"Error during login: {e}")
             flash('An error occurred. Please try again.')
     return render_template('login.html')
 

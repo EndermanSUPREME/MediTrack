@@ -68,7 +68,6 @@ def doctor_dashboard():
     query += " ORDER BY a.date, a.time"
     cur.execute(query, params)
     appointments = cur.fetchall()
-    print(f"Appointments fetched: {appointments}")  # Debugging log
     cur.close()
 
     return render_template('Doctor/docdash.html', doctor_name=doctor_name, appointments=appointments, 
@@ -110,7 +109,6 @@ def patient_dashboard():
         ORDER BY a.date, a.time
     """, (patient_id,))
     appointments = cur.fetchall()
-    print(f"Appointments fetched: {appointments}")  # Debugging log
     cur.close()
 
     return render_template('Patient/patdash.html', patient_name=patient_name, appointments=appointments)
@@ -149,7 +147,6 @@ def insurance_dashboard():
         WHERE pb.insurance_provider_id = %s
     """, (insurance_provider_id,))
     claims = cur.fetchall()
-    print(f"Claims fetched: {claims}")  # Debugging log
     cur.close()
 
     return render_template('Insurance/insurdash.html', insurance_name=insurance_name, claims=claims)

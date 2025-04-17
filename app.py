@@ -22,8 +22,8 @@ user_routes.mysql = mysql  # Pass MySQL instance to user_routes
 app.secret_key = '24932781d8d03f8a7ff6fdff8d8780f1'
 
 # Register the blueprints
-app.register_blueprint(user_routes, url_prefix='/user')  # Ensure the prefix is '/user'
-app.register_blueprint(dashboard_routes, url_prefix='/dashboard')  # Ensure the prefix is '/dashboard'
+app.register_blueprint(user_routes, url_prefix='/user')
+app.register_blueprint(dashboard_routes, url_prefix='')
 
 @app.route('/')
 def index():
