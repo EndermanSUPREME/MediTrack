@@ -5,7 +5,11 @@ user_routes = Blueprint('user_routes', __name__)
 
 def is_valid_bcrypt_hash(hash_str):
     """Validate if the given string is a valid bcrypt hash."""
-    return hash_str.startswith('$2b$') and len(hash_str) == 60
+    try:
+        bcrypt.checkpw(b'test', hash_str.encode('utf-8'))
+        return True
+    except ValueError:
+        return False
 
 def redirect_to_dashboard(role):
     """Redirect user to the appropriate dashboard based on their role."""

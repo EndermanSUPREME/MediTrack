@@ -9,7 +9,7 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Register</h1>
-        <form method="POST" action="/register" class="mt-4">
+        <form method="POST" action="{{ url_for('user_routes.register') }}" class="mt-4">
             <div class="mb-3">
                 <label for="username" class="form-label">Username:</label>
                 <input type="text" id="username" name="username" class="form-control" required>
@@ -99,7 +99,7 @@
             <button type="submit" class="btn btn-primary w-100">Register</button>
         </form>
         <div class="mt-3">
-            <a href="/login" class="btn btn-link">Back to Login</a>
+            <a href="/user/login" class="btn btn-link">Back to Login</a>
         </div>
     </div>
     <!-- Bootstrap JS -->

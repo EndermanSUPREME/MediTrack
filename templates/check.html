@@ -14,17 +14,17 @@
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <th>Age</th>
+                    <th>Phone</th>
                     <th>Address</th>
                 </tr>
             </thead>
             <tbody>
                 {% for patient in patients %}
                 <tr>
-                    <td>{{ patient[0] }}</td>
-                    <td>{{ patient[1] }}</td>
-                    <td>{{ patient[2] }}</td>
-                    <td>{{ patient[3] }}</td>
+                    <td>{{ patient.patient_id }}</td>
+                    <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                    <td>{{ patient.phone }}</td>
+                    <td>{{ patient.address }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -42,9 +42,9 @@
             <tbody>
                 {% for user in users %}
                 <tr>
-                    <td>{{ user[0] }}</td>
-                    <td>{{ user[1] }}</td>
-                    <td>{{ user[2] }}</td>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.role }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -57,16 +57,16 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>Specialization</th>
-                    <th>Contact</th>
+                    <th>Phone</th>
                 </tr>
             </thead>
             <tbody>
                 {% for doctor in doctors %}
                 <tr>
-                    <td>{{ doctor[0] }}</td>
-                    <td>{{ doctor[1] }}</td>
-                    <td>{{ doctor[2] }}</td>
-                    <td>{{ doctor[3] }}</td>
+                    <td>{{ doctor.doctor_id }}</td>
+                    <td>{{ doctor.first_name }} {{ doctor.last_name }}</td>
+                    <td>{{ doctor.speciality }}</td>
+                    <td>{{ doctor.phone }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -85,10 +85,10 @@
             <tbody>
                 {% for insurance in insurances %}
                 <tr>
-                    <td>{{ insurance[0] }}</td>
-                    <td>{{ insurance[1] }}</td>
-                    <td>{{ insurance[2] }}</td>
-                    <td>{{ insurance[3] }}</td>
+                    <td>{{ insurance.insurance_id }}</td>
+                    <td>{{ insurance.insurance_name }}</td>
+                    <td>{{ insurance.insurance_type }}</td>
+                    <td>{{ insurance.contact_number }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
