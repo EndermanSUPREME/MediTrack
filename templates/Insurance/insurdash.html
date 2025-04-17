@@ -31,7 +31,7 @@
                     </button>
                 </h2>
                 <div class="collapse" id="updateInfoForm">
-                    <form method="POST" action="{{ url_for('dashboard_routes.insurance_dashboard') }}">
+                    <form method="POST" action="{{ url_for('insurance_routes.insurance_dashboard') }}">
                         <div class="mb-3">
                             <label for="insurance_name" class="form-label">Insurance Name:</label>
                             <input type="text" id="insurance_name" name="insurance_name" class="form-control" value="{{ insurance_provider.insurance_name }}" required>
@@ -52,7 +52,7 @@
                     </button>
                 </h2>
                 <div class="collapse" id="updateCredentialsForm">
-                    <form method="POST" action="{{ url_for('dashboard_routes.insurance_dashboard') }}">
+                    <form method="POST" action="{{ url_for('insurance_routes.insurance_dashboard') }}">
                         <div class="mb-3">
                             <label for="username" class="form-label">New Username:</label>
                             <input type="text" id="username" name="username" class="form-control">

@@ -31,7 +31,7 @@
                     </button>
                 </h2>
                 <div class="collapse" id="updateInfoForm">
-                    <form method="POST" action="{{ url_for('dashboard_routes.patient_dashboard') }}">
+                    <form method="POST" action="{{ url_for('patient_routes.patient_dashboard') }}">
                         <div class="mb-3">
                             <label for="first_name" class="form-label">First Name:</label>
                             <input type="text" id="first_name" name="first_name" class="form-control" value="{{ patient.first_name }}" required>
@@ -64,7 +64,7 @@
                     </button>
                 </h2>
                 <div class="collapse" id="updateCredentialsForm">
-                    <form method="POST" action="{{ url_for('dashboard_routes.patient_dashboard') }}">
+                    <form method="POST" action="{{ url_for('patient_routes.patient_dashboard') }}">
                         <div class="mb-3">
                             <label for="username" class="form-label">New Username:</label>
                             <input type="text" id="username" name="username" class="form-control">

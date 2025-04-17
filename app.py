@@ -1,7 +1,10 @@
 from flask import Flask, render_template, url_for, session, redirect, flash, request
 from flask_mysqldb import MySQL, MySQLdb  # Import MySQLdb for DictCursor
 from user_routes import user_routes  # Import the user_routes blueprint
-from dashboard_routes import dashboard_routes  # Import the dashboard_routes blueprint
+from doctor_routes import doctor_routes  # Import the doctor_routes blueprint
+from patient_routes import patient_routes  # Import the patient_routes blueprint
+from insurance_routes import insurance_routes  # Import the insurance_routes blueprint
+from billing_routes import billing_routes  # Import the billing_routes blueprint
 
 app = Flask(__name__)
 
@@ -23,7 +26,10 @@ app.secret_key = '24932781d8d03f8a7ff6fdff8d8780f1'
 
 # Register the blueprints
 app.register_blueprint(user_routes, url_prefix='/user')
-app.register_blueprint(dashboard_routes, url_prefix='')
+app.register_blueprint(doctor_routes)
+app.register_blueprint(patient_routes)
+app.register_blueprint(insurance_routes)
+app.register_blueprint(billing_routes)
 
 @app.route('/')
 def index():

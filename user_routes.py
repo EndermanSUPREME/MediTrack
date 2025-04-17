@@ -15,13 +15,13 @@ def redirect_to_dashboard(role):
     """Redirect user to the appropriate dashboard based on their role."""
     try:
         if role == 'Doctor':
-            return redirect(url_for('dashboard_routes.doctor_dashboard'))
+            return redirect(url_for('doctor_routes.doctor_dashboard'))  # Updated blueprint reference
         elif role == 'Billing Staff':
-            return redirect(url_for('dashboard_routes.billing_dashboard'))
+            return redirect(url_for('billing_routes.billing_dashboard'))  # Updated blueprint reference
         elif role == 'Patient':
-            return redirect(url_for('dashboard_routes.patient_dashboard'))
+            return redirect(url_for('patient_routes.patient_dashboard'))  # Updated blueprint reference
         elif role == 'Insurance':
-            return redirect(url_for('dashboard_routes.insurance_dashboard'))
+            return redirect(url_for('insurance_routes.insurance_dashboard'))  # Updated blueprint reference
         else:
             flash('Invalid role. Please contact support.')
             return redirect(url_for('user_routes.login'))
