@@ -21,6 +21,16 @@
             {% endfor %}
         </select>
         <br>
+        <label for="filter_status">Filter by Status:</label>
+        <select id="filter_status" name="filter_status">
+            <option value="">All Statuses</option>
+            {% for status in statuses %}
+                <option value="{{ status }}" {% if filter_status == status %}selected{% endif %}>
+                    {{ status }}
+                </option>
+            {% endfor %}
+        </select>
+        <br>
         <button type="submit">Filter</button>
     </form>
     <h2>Appointments</h2>
@@ -32,6 +42,7 @@
                 <th>Patient</th>
                 <th>Status</th>
                 <th>Hospital</th>
+                <th>Notes</th>
             </tr>
         </thead>
         <tbody>
@@ -42,6 +53,7 @@
                     <td>{{ appointment.patient_first_name }} {{ appointment.patient_last_name }}</td>
                     <td>{{ appointment.status }}</td>
                     <td>{{ appointment.hospital_name }}</td>
+                    <td>{{ appointment.notes }}</td>
                 </tr>
             {% endfor %}
         </tbody>

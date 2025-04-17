@@ -9,16 +9,21 @@ def is_valid_bcrypt_hash(hash_str):
 
 def redirect_to_dashboard(role):
     """Redirect user to the appropriate dashboard based on their role."""
-    if role == 'Doctor':
-        return redirect(url_for('dashboard_routes.doctor_dashboard'))  # Ensure this matches the endpoint
-    elif role == 'Billing Staff':
-        return redirect(url_for('dashboard_routes.billing_dashboard'))
-    elif role == 'Patient':
-        return redirect(url_for('dashboard_routes.patient_dashboard'))
-    elif role == 'Insurance':
-        return redirect(url_for('dashboard_routes.insurance_dashboard'))
-    else:
-        flash('Invalid role. Please contact support.')
+    try:
+        if role == 'Doctor':
+            return redirect(url_for('dashboard_routes.doctor_dashboard'))
+        elif role == 'Billing Staff':
+            return redirect(url_for('dashboard_routes.billing_dashboard'))
+        elif role == 'Patient':
+            return redirect(url_for('dashboard_routes.patient_dashboard'))
+        elif role == 'Insurance':
+            return redirect(url_for('dashboard_routes.insurance_dashboard'))
+        else:
+            flash('Invalid role. Please contact support.')
+            return redirect(url_for('user_routes.login'))
+    except Exception as e:
+        print(f"Error during redirection: {e}")  # Debugging log
+        flash('An error occurred during redirection. Please try again.')
         return redirect(url_for('user_routes.login'))
 
 @user_routes.route('/login', methods=['GET', 'POST'])
@@ -29,22 +34,32 @@ def login():
         print(f"Attempting login with username: {username}")  # Debugging log
         try:
             cur = current_app.config['mysql'].connection.cursor()
-            cur.execute("SELECT id, password, role FROM users WHERE username=%s", (username,))
+            cur.execute("""
+                SELECT id, password, role, doctor_id, patient_id, insurance_provider_id 
+                FROM users 
+                WHERE username=%s
+            """, (username,))
             user = cur.fetchone()
             cur.close()
             print(f"Query result: {user}")  # Debugging log
             if user:
-                stored_password = user[1]
+                stored_password = user['password']
                 if not is_valid_bcrypt_hash(stored_password):
                     print(f"Invalid bcrypt hash format for user: {username}")  # Debugging log
                     flash('An error occurred. Please contact support.')
                     return render_template('login.html')
 
                 if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
-                    session['user_id'] = user[0]
-                    session['role'] = user[2]
-                    print(f"Login successful for user ID: {user[0]}, role: {user[2]}")  # Debugging log
-                    return redirect_to_dashboard(user[2])
+                    # Store the role-specific ID in the session
+                    session['user_id'] = (
+                        user['doctor_id'] if user['role'] == 'Doctor' else
+                        user['patient_id'] if user['role'] == 'Patient' else
+                        user['insurance_provider_id'] if user['role'] == 'Insurance' else
+                        user['id']  # Default to the user ID for roles like Billing Staff
+                    )
+                    session['role'] = user['role']
+                    print(f"Login successful for user ID: {session['user_id']}, role: {user['role']}")  # Debugging log
+                    return redirect_to_dashboard(user['role'])
                 else:
                     flash('Invalid password')
                     print("Invalid password")  # Debugging log

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, session, redirect, flash, request
-from flask_mysqldb import MySQL
+from flask_mysqldb import MySQL, MySQLdb  # Import MySQLdb for DictCursor
 from user_routes import user_routes  # Import the user_routes blueprint
 from dashboard_routes import dashboard_routes  # Import the dashboard_routes blueprint
 
@@ -13,6 +13,10 @@ app.config['MYSQL_DB'] = 'meditrack'
 
 mysql = MySQL(app)
 app.config['mysql'] = mysql  # Add mysql to app config
+
+# Enable DictCursor for all queries
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+
 user_routes.mysql = mysql  # Pass MySQL instance to user_routes
 
 app.secret_key = '24932781d8d03f8a7ff6fdff8d8780f1'
