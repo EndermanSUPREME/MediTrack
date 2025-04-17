@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request, current_app
+import bcrypt
 
 insurance_routes = Blueprint('insurance_routes', __name__)
 
@@ -8,7 +9,7 @@ def insurance_dashboard():
         flash('Unauthorized access. Please log in as an insurance provider.')
         return redirect(url_for('user_routes.login'))
 
-    insurance_provider_id = session.get('user_id')
+    insurance_provider_id = session.get('role_specific_id')  # Use the role-specific ID for insurance operations
 
     if request.method == 'POST':
         # Update insurance provider information
@@ -34,7 +35,6 @@ def insurance_dashboard():
     insurance_provider = cur.fetchone()
     cur.close()
 
-    # Render the dashboard without claim-related logic
     return render_template('Insurance/insurdash.html', insurance_provider=insurance_provider, insurance_name=insurance_provider['insurance_name'])
 
 @insurance_routes.route('/dashboard/insurance/claims', methods=['GET', 'POST'])
@@ -99,3 +99,29 @@ def insurance_claims():
     cur.close()
 
     return render_template('Insurance/claims.html', claims=claims, alert_message=alert_message)
+
+@insurance_routes.route('/dashboard/insurance/update_credentials', methods=['POST'])
+def update_insurance_credentials():
+    if 'role' not in session or session['role'] != 'Insurance':
+        flash('Unauthorized access. Please log in as an insurance provider.')
+        return redirect(url_for('user_routes.login'))
+
+    user_id = session.get('user_id')  # This corresponds to the `id` in the `users` table
+    new_username = request.form.get('username')
+    new_password = request.form.get('password')
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        if new_username:
+            cur.execute("UPDATE users SET username = %s WHERE id = %s", (new_username, user_id))
+        if new_password:
+            hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cur.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, user_id))
+        current_app.config['mysql'].connection.commit()
+        cur.close()
+        flash('Credentials updated successfully.')
+    except Exception as e:
+        flash('An error occurred while updating credentials.')
+        print(f"Error: {e}")
+
+    return redirect(url_for('insurance_routes.insurance_dashboard'))

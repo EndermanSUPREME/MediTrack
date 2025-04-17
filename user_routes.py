@@ -54,15 +54,17 @@ def login():
                     return render_template('login.html')
 
                 if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
+                    # Store the `id` from the `users` table in the session
+                    session['user_id'] = user['id']
+                    session['role'] = user['role']
                     # Store the role-specific ID in the session
-                    session['user_id'] = (
+                    session['role_specific_id'] = (
                         user['doctor_id'] if user['role'] == 'Doctor' else
                         user['patient_id'] if user['role'] == 'Patient' else
                         user['insurance_provider_id'] if user['role'] == 'Insurance' else
-                        user['id']  # Default to the user ID for roles like Billing Staff
+                        None  # No role-specific ID for Billing Staff
                     )
-                    session['role'] = user['role']
-                    print(f"Login successful for user ID: {session['user_id']}, role: {user['role']}")
+                    print(f"Login successful for user ID: {session['user_id']}, role: {user['role']}, role-specific ID: {session['role_specific_id']}")
                     return redirect_to_dashboard(user['role'])
                 else:
                     flash('Invalid password')
