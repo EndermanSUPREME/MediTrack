@@ -9,19 +9,19 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Login</h1>
-        <form method="POST" action="/login" class="mt-4">
+        <form action="/user/login" method="POST" class="mt-4">
             <div class="mb-3">
-                <label for="username" class="form-label">Username:</label>
-                <input type="text" id="username" name="username" class="form-control" required>
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required>
             </div>
             <div class="mb-3">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
         <div class="text-center mt-3">
-            <p>Don't have an account? <a href="/register">Register here</a></p>
+            <p>Don't have an account? <a href="/user/register">Register here</a></p>
         </div>
         {% with messages = get_flashed_messages() %}
         {% if messages %}

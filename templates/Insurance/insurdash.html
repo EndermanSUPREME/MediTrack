@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome, {{ insurance_name }}!</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Overview</h2>
+            <p>This is where you can manage insurance claims and view patient billing details.</p>
+        </section>
+        <section>
+            <h2>Claims</h2>
+            {% if claims %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Claim ID</th>
+                        <th>Total Amount</th>
+                        <th>Insurance Covered</th>
+                        <th>Payment Status</th>
+                        <th>Patient</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claim in claims %}
+                    <tr>
+                        <td>{{ claim.billing_cost_id }}</td>
+                        <td>{{ claim.total_amount }}</td>
+                        <td>{{ claim.insurance_covered }}</td>
+                        <td>{{ claim.payment_status }}</td>
+                        <td>{{ claim.patient_first_name }} {{ claim.patient_last_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No claims available.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 MediTrack. All rights reserved.</p>
+    </footer>
+</body>
+</html>

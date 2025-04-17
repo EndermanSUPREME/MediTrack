@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Billing Dashboard!</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Overview</h2>
+            <p>This is where you can manage billing records and payment statuses.</p>
+        </section>
+        <section>
+            <h2>Billing Records</h2>
+            {% if billing_records %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Total Amount</th>
+                        <th>Payment Status</th>
+                        <th>Insurance Covered</th>
+                        <th>Patient</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in billing_records %}
+                    <tr>
+                        <td>{{ record.bill_id }}</td>
+                        <td>{{ record.total_amount }}</td>
+                        <td>{{ record.payment_status }}</td>
+                        <td>{{ record.insurance_covered }}</td>
+                        <td>{{ record.patient_first_name }} {{ record.patient_last_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No billing records available.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 MediTrack. All rights reserved.</p>
+    </footer>
+</body>
+</html>
