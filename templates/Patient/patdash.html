@@ -10,41 +10,77 @@
     {% include 'Patient/navbar.html' %}
     <div class="container mt-4">
         <header class="mb-4">
-            <h1 class="text-center">Welcome, {{ patient_name }}!</h1>
+            <h1 class="text-center">Welcome, {{ patient.first_name }}!</h1>
         </header>
         <main>
+            <!-- Alert section for success or error messages -->
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-success" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
+
+            <section class="mb-4">
+                <h2>
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#updateInfoForm" aria-expanded="false" aria-controls="updateInfoForm">
+                        Update Your Information
+                    </button>
+                </h2>
+                <div class="collapse" id="updateInfoForm">
+                    <form method="POST" action="{{ url_for('dashboard_routes.patient_dashboard') }}">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name:</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control" value="{{ patient.first_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name:</label>
+                            <input type="text" id="last_name" name="last_name" class="form-control" value="{{ patient.last_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone:</label>
+                            <input type="text" id="phone" name="phone" class="form-control" value="{{ patient.phone }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" id="email" name="email" class="form-control" value="{{ patient.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address:</label>
+                            <input type="text" id="address" name="address" class="form-control" value="{{ patient.address }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="mb-4">
+                <h2>
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#updateCredentialsForm" aria-expanded="false" aria-controls="updateCredentialsForm">
+                        Update Username or Password
+                    </button>
+                </h2>
+                <div class="collapse" id="updateCredentialsForm">
+                    <form method="POST" action="{{ url_for('dashboard_routes.patient_dashboard') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">New Username:</label>
+                            <input type="text" id="username" name="username" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password:</label>
+                            <input type="password" id="password" name="password" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </section>
+
             <section class="mb-4">
                 <h2>Overview</h2>
                 <p>This is where you can view your medical information and updates.</p>
-            </section>
-            <section>
-                <h2>Appointments</h2>
-                {% if appointments %}
-                <table class="table table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Doctor</th>
-                            <th>Status</th>
-                            <th>Hospital</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for appointment in appointments %}
-                        <tr>
-                            <td>{{ appointment.date }}</td>
-                            <td>{{ appointment.time }}</td>
-                            <td>{{ appointment.doctor_first_name }} {{ appointment.doctor_last_name }}</td>
-                            <td>{{ appointment.status }}</td>
-                            <td>{{ appointment.hospital_name }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="text-warning">No upcoming appointments.</p>
-                {% endif %}
             </section>
         </main>
     </div>

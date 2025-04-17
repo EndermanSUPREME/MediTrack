@@ -13,38 +13,41 @@
             <h1 class="text-center">Welcome to the Billing Dashboard!</h1>
         </header>
         <main>
+            <!-- Alert section for success or error messages -->
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-success" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
+
             <section class="mb-4">
                 <h2>Overview</h2>
-                <p>This is where you can manage billing records and payment statuses.</p>
+                <p>This is where you can manage your profile information.</p>
             </section>
-            <section>
-                <h2>Billing Records</h2>
-                {% if billing_records %}
-                <table class="table table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Bill ID</th>
-                            <th>Total Amount</th>
-                            <th>Payment Status</th>
-                            <th>Insurance Covered</th>
-                            <th>Patient</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in billing_records %}
-                        <tr>
-                            <td>{{ record.bill_id }}</td>
-                            <td>{{ record.total_amount }}</td>
-                            <td>{{ record.payment_status }}</td>
-                            <td>{{ record.insurance_covered }}</td>
-                            <td>{{ record.patient_first_name }} {{ record.patient_last_name }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="text-warning">No billing records available.</p>
-                {% endif %}
+
+            <section class="mb-4">
+                <h2>
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#updateCredentialsForm" aria-expanded="false" aria-controls="updateCredentialsForm">
+                        Update Username or Password
+                    </button>
+                </h2>
+                <div class="collapse" id="updateCredentialsForm">
+                    <form method="POST" action="{{ url_for('dashboard_routes.billing_dashboard') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">New Username:</label>
+                            <input type="text" id="username" name="username" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password:</label>
+                            <input type="password" id="password" name="password" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
             </section>
         </main>
     </div>

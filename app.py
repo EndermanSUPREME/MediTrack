@@ -12,12 +12,12 @@ app.config['MYSQL_PASSWORD'] = 'veryOkIrTIcA'
 app.config['MYSQL_DB'] = 'meditrack'
 
 mysql = MySQL(app)
-app.config['mysql'] = mysql  # Add mysql to app config
+app.config['mysql'] = mysql
 
 # Enable DictCursor for all queries
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
-user_routes.mysql = mysql  # Pass MySQL instance to user_routes
+user_routes.mysql = mysql
 
 app.secret_key = '24932781d8d03f8a7ff6fdff8d8780f1'
 
