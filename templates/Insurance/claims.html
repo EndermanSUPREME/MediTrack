@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Claims</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'Insurance/navbar.html' %}
+    <div class="container mt-4">
+        <h1 class="text-center">Manage Claims</h1>
+
+        {% if alert_message %}
+        <div class="alert alert-info" role="alert">
+            {{ alert_message }}
+        </div>
+        {% endif %}
+
+        <!-- Filters -->
+        <form method="GET" id="filter-form" class="mb-4">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <input type="date" id="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="insurance_covered" class="form-label">Insurance Covered:</label>
+                    <select id="insurance_covered" name="insurance_covered" class="form-select">
+                        <option value="">All</option>
+                        <option value="y" {% if request.args.get('insurance_covered') == 'y' %}selected{% endif %}>Yes</option>
+                        <option value="n" {% if request.args.get('insurance_covered') == 'n' %}selected{% endif %}>No</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+
+        <!-- Claims Table -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Total Amount</th>
+                    <th>Payment Status</th>
+                    <th>Insurance Claimed</th>
+                    <th>Insurance Covered</th>
+                    <th>Appointment Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for claim in claims %}
+                <tr>
+                    <td>{{ claim.bill_id }}</td>
+                    <td>${{ claim.total_amount }}</td>
+                    <td>{{ claim.payment_status }}</td>
+                    <td>{{ 'Yes' if claim.insurance_claimed else 'No' }}</td>
+                    <td>${{ claim.insurance_covered if claim.insurance_covered else 'N/A' }}</td>
+                    <td>{{ claim.date }}</td>
+                    <td>
+                        <form method="POST" class="d-inline">
+                            <input type="hidden" name="bill_id" value="{{ claim.bill_id }}">
+                            <input type="number" name="insurance_covered" class="form-control mb-2" placeholder="Enter amount">
+                            <button type="submit" name="update_coverage" class="btn btn-success mb-2">Update</button>
+                            <button type="submit" name="toggle_claimed" class="btn btn-primary">
+                                {{ 'Unset Claimed' if claim.insurance_claimed else 'Set Claimed' }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Automatically submit the filter form when a filter value changes
+        document.getElementById('date').addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+        document.getElementById('insurance_covered').addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+    </script>
+</body>
+</html>
