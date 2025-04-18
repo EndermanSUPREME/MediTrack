@@ -42,63 +42,60 @@ def insurance_claims():
     if 'role' not in session or session['role'] != 'Insurance':
         return redirect(url_for('user_routes.login'))
 
-    insurance_provider_id = session.get('user_id')
+    insurance_provider_id = session.get('role_specific_id')  # Ensure this matches the insurance provider's ID
     cur = current_app.config['mysql'].connection.cursor()
 
-    # Handle filters
-    date_filter = request.args.get('date')
-    insurance_covered_filter = request.args.get('insurance_covered')
-
+    # Fetch claims with payment_status = 'Insurance'
     query = """
-        SELECT pb.bill_id, bc.total_amount, bc.payment_status, bc.insurance_claimed, bc.insurance_covered, a.date
+        SELECT pb.bill_id, bc.total_amount, bc.payment_status, a.date
         FROM patient_billing pb
         JOIN billing_cost bc ON pb.billing_cost_id = bc.billing_cost_id
         JOIN appointment a ON pb.appointment_id = a.appointment_id
-        WHERE pb.insurance_provider_id = %s
+        WHERE pb.insurance_provider_id = %s AND bc.payment_status = 'Insurance'
     """
     params = [insurance_provider_id]
 
-    if date_filter:
-        query += " AND a.date = %s"
-        params.append(date_filter)
-    if insurance_covered_filter:
-        query += " AND bc.insurance_claimed = %s"
-        params.append(1 if insurance_covered_filter.lower() == 'y' else 0)
+    try:
+        cur.execute(query, params)
+        claims = cur.fetchall()
+    except Exception as e:
+        flash('An error occurred while fetching claims.')
+        print(f"Error: {e}")
+        claims = []
 
-    cur.execute(query, params)
-    claims = cur.fetchall()
-
-    # Handle updates to insurance coverage
-    alert_message = None
+    # Handle updates to claims
     if request.method == 'POST':
         bill_id = request.form.get('bill_id')
         try:
-            if 'update_coverage' in request.form:
-                # Update insurance coverage
+            if 'approve_claim' in request.form:
+                # Approve the claim by setting insurance_covered and insurance_claimed
                 insurance_covered = request.form.get('insurance_covered')
                 cur.execute("""
                     UPDATE billing_cost
-                    SET insurance_covered = %s
+                    SET insurance_covered = %s, insurance_claimed = 1, payment_status = 'Pending'
                     WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)
                 """, (insurance_covered, bill_id))
                 current_app.config['mysql'].connection.commit()
-                alert_message = 'Insurance coverage updated successfully.'
-            elif 'toggle_claimed' in request.form:
-                # Toggle insurance_claimed status
+                flash('Claim approved successfully.')
+            elif 'deny_claim' in request.form:
+                # Deny the claim by setting insurance_claimed to 0 and updating the status
                 cur.execute("""
                     UPDATE billing_cost
-                    SET insurance_claimed = NOT insurance_claimed
+                    SET insurance_claimed = 0, payment_status = 'Pending - Denied'
                     WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)
                 """, (bill_id,))
                 current_app.config['mysql'].connection.commit()
-                alert_message = 'Insurance claimed status toggled successfully.'
+                flash('Claim denied successfully.')
         except Exception as e:
             print(f"Error: {e}")
-            alert_message = 'An error occurred while processing your request.'
+            flash('An error occurred while processing your request.')
+
+        # Redirect back to refresh the page and remove the processed claim
+        return redirect(url_for('insurance_routes.insurance_claims'))
 
     cur.close()
 
-    return render_template('Insurance/claims.html', claims=claims, alert_message=alert_message)
+    return render_template('Insurance/claims.html', claims=claims)
 
 @insurance_routes.route('/dashboard/insurance/update_credentials', methods=['POST'])
 def update_insurance_credentials():

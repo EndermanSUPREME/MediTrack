@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Queue</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'Billing/navbar.html' %}
+    <div class="container mt-4">
+        <h2 class="text-center">Queued Bills</h2>
+        {% if bills %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Patient Name</th>
+                    <th>Amount</th>
+                    <th>Appointment Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in bills %}
+                <tr>
+                    <td>{{ bill.id }}</td>
+                    <td>{{ bill.patient_name }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('billing_routes.update_bill_price', bill_id=bill.id) }}">
+                            <input type="number" name="price" value="{{ bill.amount }}" class="form-control" required>
+                            <button type="submit" class="btn btn-primary btn-sm mt-1">Update Price</button>
+                        </form>
+                    </td>
+                    <td>{{ bill.appointment_notes or 'No notes available' }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('billing_routes.set_insurance', bill_id=bill.id) }}">
+                            <select name="insurance_id" class="form-select mb-2" required>
+                                <option value="" disabled selected>Select Insurance</option>
+                                {% for insurance in bill.insurances.split(',') %}
+                                {% set insurance_parts = insurance.split(':') %}
+                                <option value="{{ insurance_parts[0] }}">{{ insurance_parts[1] }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-success btn-sm">Set to Insurance</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center mt-4">No queued bills.</p>
+        {% endif %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -24,14 +24,6 @@
                     <label for="date" class="form-label">Date:</label>
                     <input type="date" id="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
                 </div>
-                <div class="col-md-3">
-                    <label for="insurance_covered" class="form-label">Insurance Covered:</label>
-                    <select id="insurance_covered" name="insurance_covered" class="form-select">
-                        <option value="">All</option>
-                        <option value="y" {% if request.args.get('insurance_covered') == 'y' %}selected{% endif %}>Yes</option>
-                        <option value="n" {% if request.args.get('insurance_covered') == 'n' %}selected{% endif %}>No</option>
-                    </select>
-                </div>
             </div>
         </form>
 
@@ -42,32 +34,28 @@
                     <th>Bill ID</th>
                     <th>Total Amount</th>
                     <th>Payment Status</th>
-                    <th>Insurance Claimed</th>
-                    <th>Insurance Covered</th>
                     <th>Appointment Date</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for claim in claims %}
+                {% if claim.payment_status == 'Insurance' %}
                 <tr>
                     <td>{{ claim.bill_id }}</td>
                     <td>${{ claim.total_amount }}</td>
                     <td>{{ claim.payment_status }}</td>
-                    <td>{{ 'Yes' if claim.insurance_claimed else 'No' }}</td>
-                    <td>${{ claim.insurance_covered if claim.insurance_covered else 'N/A' }}</td>
                     <td>{{ claim.date }}</td>
                     <td>
                         <form method="POST" class="d-inline">
                             <input type="hidden" name="bill_id" value="{{ claim.bill_id }}">
-                            <input type="number" name="insurance_covered" class="form-control mb-2" placeholder="Enter amount">
-                            <button type="submit" name="update_coverage" class="btn btn-success mb-2">Update</button>
-                            <button type="submit" name="toggle_claimed" class="btn btn-primary">
-                                {{ 'Unset Claimed' if claim.insurance_claimed else 'Set Claimed' }}
-                            </button>
+                            <input type="number" name="insurance_covered" class="form-control mb-2" placeholder="Enter coverage amount" {% if 'approve_claim' in request.form %}required{% endif %}>
+                            <button type="submit" name="approve_claim" class="btn btn-success mb-2">Approve Claim</button>
+                            <button type="submit" name="deny_claim" class="btn btn-danger">Deny Claim</button>
                         </form>
                     </td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>

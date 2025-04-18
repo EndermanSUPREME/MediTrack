@@ -36,3 +36,122 @@ def update_billing_credentials():
         print(f"Error: {e}")
 
     return redirect(url_for('billing_routes.billing_dashboard'))
+
+@billing_routes.route('/dashboard/billing/queue', methods=['GET'])
+def billing_queue():
+    if 'role' not in session or session['role'] != 'Billing Staff':
+        flash('Unauthorized access. Please log in as billing staff.')
+        return redirect(url_for('user_routes.login'))
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        query = """
+            SELECT b.bill_id AS id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, 
+                   bc.total_amount AS amount, a.notes AS appointment_notes,
+                   GROUP_CONCAT(ip.insurance_id, ':', ip.insurance_name, ' (', pt.type, ')') AS insurances
+            FROM patient_billing b
+            JOIN billing_cost bc ON b.billing_cost_id = bc.billing_cost_id
+            JOIN patient p ON b.patient_id = p.patient_id
+            LEFT JOIN appointment a ON b.appointment_id = a.appointment_id
+            LEFT JOIN patient_insurance pi ON p.patient_id = pi.patient_id
+            LEFT JOIN insurance_provider ip ON pi.insurance_id = ip.insurance_id
+            LEFT JOIN professions pt ON ip.insurance_type = pt.professions_id
+            WHERE bc.payment_status = 'Queued'
+            GROUP BY b.bill_id
+        """
+        cur.execute(query)
+        bills = cur.fetchall()
+        cur.close()
+    except Exception as e:
+        flash('An error occurred while fetching queued bills.')
+        print(f"Error: {e}")
+        bills = []
+
+    return render_template('Billing/queue.html', bills=bills)
+
+@billing_routes.route('/dashboard/billing/queue/update_price/<int:bill_id>', methods=['POST'])
+def update_bill_price(bill_id):
+    if 'role' not in session or session['role'] != 'Billing Staff':
+        flash('Unauthorized access. Please log in as billing staff.')
+        return redirect(url_for('user_routes.login'))
+
+    new_price = request.form.get('price')
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        cur.execute("UPDATE billing_cost SET total_amount = %s WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)", (new_price, bill_id))
+        current_app.config['mysql'].connection.commit()
+        cur.close()
+        flash('Price updated successfully.')
+    except Exception as e:
+        flash('An error occurred while updating the price.')
+        print(f"Error: {e}")
+
+    return redirect(url_for('billing_routes.billing_queue'))
+
+@billing_routes.route('/dashboard/billing/queue/set_insurance/<int:bill_id>', methods=['POST'])
+def set_insurance(bill_id):
+    if 'role' not in session or session['role'] != 'Billing Staff':
+        flash('Unauthorized access. Please log in as billing staff.')
+        return redirect(url_for('user_routes.login'))
+
+    selected_insurance_id = request.form.get('insurance_id')
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        # Update the insurance provider for the bill and set the payment status to 'Insurance'
+        cur.execute("""
+            UPDATE patient_billing
+            SET insurance_provider_id = %s
+            WHERE bill_id = %s
+        """, (selected_insurance_id, bill_id))
+        cur.execute("""
+            UPDATE billing_cost
+            SET payment_status = 'Insurance'
+            WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)
+        """, (bill_id,))
+        current_app.config['mysql'].connection.commit()
+        cur.close()
+        flash('Bill status set to Insurance and insurance applied successfully.')
+    except Exception as e:
+        flash('An error occurred while updating the status.')
+        print(f"Error: {e}")
+
+    return redirect(url_for('billing_routes.billing_queue'))
+
+@billing_routes.route('/dashboard/billing/records', methods=['GET'])
+def billing_records():
+    if 'role' not in session or session['role'] != 'Billing Staff':
+        flash('Unauthorized access. Please log in as billing staff.')
+        return redirect(url_for('user_routes.login'))
+
+    status_filter = request.args.get('status')
+    patient_filter = request.args.get('patient')
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        query = """
+            SELECT b.bill_id AS id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, 
+                   bc.total_amount AS amount, bc.payment_status, a.date AS appointment_date, a.notes
+            FROM patient_billing b
+            JOIN billing_cost bc ON b.billing_cost_id = bc.billing_cost_id
+            JOIN patient p ON b.patient_id = p.patient_id
+            LEFT JOIN appointment a ON b.appointment_id = a.appointment_id
+            WHERE bc.payment_status IN ('Pending', 'Pending - Denied', 'Paid')
+        """
+        params = []
+
+        if status_filter:
+            query += " AND bc.payment_status = %s"
+            params.append(status_filter)
+        if patient_filter:
+            query += " AND CONCAT(p.first_name, ' ', p.last_name) LIKE %s"
+            params.append(f"%{patient_filter}%")
+
+        cur.execute(query, params)
+        records = cur.fetchall()
+        cur.close()
+    except Exception as e:
+        flash('An error occurred while fetching billing records.')
+        print(f"Error: {e}")
+        records = []
+
+    return render_template('Billing/records.html', records=records, status_filter=status_filter, patient_filter=patient_filter)
