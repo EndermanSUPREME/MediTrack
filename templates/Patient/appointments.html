@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'Patient/navbar.html' %}
+    <div class="container mt-4">
+        <h2 class="text-center">My Appointments</h2>
+
+        <!-- Upcoming Scheduled Appointments -->
+        <h4>Upcoming Appointments</h4>
+        {% if scheduled_appointments %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Hospital</th>
+                    <th>Doctor</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in scheduled_appointments %}
+                <tr>
+                    <td>{{ appointment.date }}</td>
+                    <td>{{ appointment.time|format_time_12_hour }}</td>
+                    <td>{{ appointment.hospital_name }}</td>
+                    <td>{{ appointment.doctor_name }}</td>
+                    <td>{{ appointment.notes }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No upcoming appointments found.</p>
+        {% endif %}
+
+        <!-- Schedule New Appointment -->
+        <h4>Schedule New Appointment</h4>
+        <form method="POST" class="mb-4">
+            <div class="mb-3">
+                <label for="hospital_id" class="form-label">Select Hospital</label>
+                <select id="hospital_id" name="hospital_id" class="form-select" required>
+                    <option value="" disabled selected>Select Hospital</option>
+                    {% for hospital in hospitals %}
+                    <option value="{{ hospital.hospital_id }}">{{ hospital.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="doctor_id" class="form-label">Select Doctor</label>
+                <select id="doctor_id" name="doctor_id" class="form-select" required>
+                    <option value="" disabled selected>Select Doctor</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Select Date</label>
+                <input type="date" id="date" name="date" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="time" class="form-label">Select Time</label>
+                <select id="time" name="time" class="form-select" required>
+                    <option value="" disabled selected>Select Time</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fetch available doctors when a hospital is selected
+        document.getElementById('hospital_id').addEventListener('change', function() {
+            const hospitalId = this.value;
+            const doctorSelect = document.getElementById('doctor_id');
+            doctorSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+            fetch(`/api/hospitals/${hospitalId}/doctors`)
+                .then(response => response.json())
+                .then(data => {
+                    doctorSelect.innerHTML = '<option value="" disabled selected>Select Doctor</option>';
+                    data.forEach(doctor => {
+                        const option = document.createElement('option');
+                        option.value = doctor.doctor_id;
+                        option.textContent = `${doctor.first_name} ${doctor.last_name}`;
+                        doctorSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching doctors:', error);
+                    doctorSelect.innerHTML = '<option value="" disabled selected>Error loading doctors</option>';
+                });
+        });
+
+        // Fetch available times when a doctor and date are selected
+        document.getElementById('date').addEventListener('change', fetchAvailableTimes);
+        document.getElementById('doctor_id').addEventListener('change', fetchAvailableTimes);
+
+        function fetchAvailableTimes() {
+            const doctorId = document.getElementById('doctor_id').value;
+            const date = document.getElementById('date').value;
+            const hospitalId = document.getElementById('hospital_id').value;
+            const timeSelect = document.getElementById('time');
+
+            if (doctorId && date && hospitalId) {
+                timeSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+                fetch(`/api/doctors/${doctorId}/available-times?date=${date}&hospital_id=${hospitalId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        timeSelect.innerHTML = '<option value="" disabled selected>Select Time</option>';
+                        if (data.length === 0) {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No available times';
+                            option.disabled = true;
+                            timeSelect.appendChild(option);
+                        } else {
+                            data.forEach(time => {
+                                const option = document.createElement('option');
+                                option.value = time;
+                                option.textContent = time; // Already formatted in 12-hour format by the backend
+                                timeSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching available times:', error);
+                        timeSelect.innerHTML = '<option value="" disabled selected>Error loading times</option>';
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

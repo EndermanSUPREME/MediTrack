@@ -5,6 +5,7 @@ from doctor_routes import doctor_routes  # Import the doctor_routes blueprint
 from patient_routes import patient_routes  # Import the patient_routes blueprint
 from insurance_routes import insurance_routes  # Import the insurance_routes blueprint
 from billing_routes import billing_routes  # Import the billing_routes blueprint
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -30,6 +31,21 @@ app.register_blueprint(doctor_routes)
 app.register_blueprint(patient_routes)
 app.register_blueprint(insurance_routes)
 app.register_blueprint(billing_routes)
+
+@app.template_filter('format_time_12_hour')
+def format_time_12_hour(value):
+    """Convert time from 24-hour format (HH:MM:SS) or timedelta to 12-hour format (h:mm AM/PM)."""
+    try:
+        if isinstance(value, timedelta):
+            # Convert timedelta to string in HH:MM:SS format
+            total_seconds = int(value.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            value = f"{hours:02}:{minutes:02}:00"
+        time_obj = datetime.strptime(value, '%H:%M:%S')
+        return time_obj.strftime('%I:%M %p')
+    except (ValueError, TypeError):
+        return value
 
 @app.route('/')
 def index():

@@ -155,3 +155,49 @@ def billing_records():
         records = []
 
     return render_template('Billing/records.html', records=records, status_filter=status_filter, patient_filter=patient_filter)
+
+@billing_routes.route('/dashboard/billing/payment', methods=['GET', 'POST'])
+def billing_payment():
+    if 'role' not in session or session['role'] != 'Billing Staff':
+        flash('Unauthorized access. Please log in as billing staff.')
+        return redirect(url_for('user_routes.login'))
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        query = """
+            SELECT b.bill_id AS id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, 
+                   bc.total_amount AS amount, bc.payment_status, bc.insurance_covered, a.notes AS appointment_notes
+            FROM patient_billing b
+            JOIN billing_cost bc ON b.billing_cost_id = bc.billing_cost_id
+            JOIN patient p ON b.patient_id = p.patient_id
+            LEFT JOIN appointment a ON b.appointment_id = a.appointment_id
+            WHERE bc.payment_status IN ('Pending', 'Pending - Denied')
+        """
+        cur.execute(query)
+        bills = cur.fetchall()
+        cur.close()
+    except Exception as e:
+        flash('An error occurred while fetching bills.')
+        print(f"Error: {e}")
+        bills = []
+
+    if request.method == 'POST':
+        bill_id = request.form.get('bill_id')
+        if 'set_paid' in request.form:
+            try:
+                cur = current_app.config['mysql'].connection.cursor()
+                cur.execute("""
+                    UPDATE billing_cost
+                    SET payment_status = 'Paid'
+                    WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)
+                """, (bill_id,))
+                current_app.config['mysql'].connection.commit()
+                cur.close()
+                flash('Bill status set to Paid.')
+            except Exception as e:
+                flash('An error occurred while updating the status.')
+                print(f"Error: {e}")
+
+        return redirect(url_for('billing_routes.billing_payment'))
+
+    return render_template('Billing/payment.html', bills=bills)
