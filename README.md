@@ -4,7 +4,7 @@ IntroToDatabases Group Project : A Patient &amp; Appointment Management System
 # ER - Diagram
 found as file ER.png
 
-![ER Diagram](./ER.png)
+![ER Diagram](./sql/ER.png)
 
 # SQL Information
 Our database schema is stored in meditrack(1).sql

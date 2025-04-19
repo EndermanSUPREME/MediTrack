@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 import bcrypt
+from admin_routes import admin_routes  # Import the admin_routes blueprint
 
 user_routes = Blueprint('user_routes', __name__)
 
@@ -22,6 +23,8 @@ def redirect_to_dashboard(role):
             return redirect(url_for('patient_routes.patient_dashboard'))  # Updated blueprint reference
         elif role == 'Insurance':
             return redirect(url_for('insurance_routes.insurance_dashboard'))  # Updated blueprint reference
+        elif role == 'Admin':  # Added case for Admin role
+            return redirect(url_for('admin_routes.admin_dashboard'))  # Updated blueprint reference
         else:
             flash('Invalid role. Please contact support.')
             return redirect(url_for('user_routes.login'))
@@ -191,3 +194,11 @@ def register():
 def logout():
     session.clear()
     return redirect(url_for('user_routes.login'))
+
+@user_routes.route('/dashboard/admin', methods=['GET'])
+def admin_dashboard():
+    if 'role' not in session or session['role'] != 'Admin':
+        flash('Unauthorized access. Please log in as an admin.')
+        return redirect(url_for('user_routes.login'))
+
+    return render_template('Admin/dashboard.html')

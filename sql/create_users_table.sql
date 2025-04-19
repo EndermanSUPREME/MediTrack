@@ -3,7 +3,7 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('Patient', 'Doctor', 'Billing Staff', 'Insurance') NOT NULL,
+    role ENUM('Patient', 'Doctor', 'Billing Staff', 'Insurance', 'Admin') NOT NULL,
     doctor_id INT DEFAULT NULL,
     patient_id INT DEFAULT NULL,
     insurance_provider_id INT DEFAULT NULL,

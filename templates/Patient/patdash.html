@@ -10,7 +10,7 @@
     {% include 'Patient/navbar.html' %}
     <div class="container mt-4">
         <header class="mb-4">
-            <h1 class="text-center">Welcome, {{ patient.first_name }}!</h1>
+            <h1 class="text-center">Welcome, {{ patient.first_name }} {{patient.last_name}}!</h1>
         </header>
         <main>
             <!-- Alert section for success or error messages -->

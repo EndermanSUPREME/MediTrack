@@ -5,6 +5,7 @@ from doctor_routes import doctor_routes  # Import the doctor_routes blueprint
 from patient_routes import patient_routes  # Import the patient_routes blueprint
 from insurance_routes import insurance_routes  # Import the insurance_routes blueprint
 from billing_routes import billing_routes  # Import the billing_routes blueprint
+from admin_routes import admin_routes  # Import the admin_routes blueprint
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -31,6 +32,7 @@ app.register_blueprint(doctor_routes)
 app.register_blueprint(patient_routes)
 app.register_blueprint(insurance_routes)
 app.register_blueprint(billing_routes)
+app.register_blueprint(admin_routes, url_prefix='/admin')  # Register the admin_routes blueprint
 
 @app.template_filter('format_time_12_hour')
 def format_time_12_hour(value):
