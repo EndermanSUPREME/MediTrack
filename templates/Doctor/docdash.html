@@ -11,7 +11,7 @@
     <div class="container mt-4">
         <header class="mb-4">
             <h1 class="text-center">Doctor Dashboard</h1>
-            <h2 class="text-center">Welcome, {{ doctor.first_name }}!</h2>
+            <h2 class="text-center">Welcome, {{ doctor.first_name }} {{doctor.last_name}}!</h2>
         </header>
         <main>
             {% with messages = get_flashed_messages() %}
