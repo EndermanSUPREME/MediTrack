@@ -9,7 +9,7 @@ def admin_dashboard():
     if 'role' not in session or session['role'] != 'Admin':
         flash('Unauthorized access. Please log in as an admin.')
         return redirect(url_for('user_routes.login'))
-    return render_template('Admin/dashboard.html')
+    return render_template('admin/dashboard.html')
 
 @admin_routes.route('/manage_users', methods=['GET', 'POST'])
 def manage_users():
