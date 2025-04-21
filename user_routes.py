@@ -194,11 +194,3 @@ def register():
 def logout():
     session.clear()
     return redirect(url_for('user_routes.login'))
-
-@user_routes.route('/dashboard/admin', methods=['GET'])
-def admin_dashboard():
-    if 'role' not in session or session['role'] != 'Admin':
-        flash('Unauthorized access. Please log in as an admin.')
-        return redirect(url_for('user_routes.login'))
-
-    return render_template('Admin/dashboard.html')

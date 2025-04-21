@@ -32,7 +32,7 @@ app.register_blueprint(doctor_routes)
 app.register_blueprint(patient_routes)
 app.register_blueprint(insurance_routes)
 app.register_blueprint(billing_routes)
-app.register_blueprint(admin_routes, url_prefix='/admin')  # Register the admin_routes blueprint
+app.register_blueprint(admin_routes, url_prefix='/admin')  # Ensure admin_routes uses the /admin prefix
 
 @app.template_filter('format_time_12_hour')
 def format_time_12_hour(value):

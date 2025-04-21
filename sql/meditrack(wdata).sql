@@ -141,7 +141,7 @@ INSERT INTO `health_demographics` (`patient_id`, `date_recorded`, `date_of_birth
 --
 
 CREATE TABLE `hospital` (
-  `hospital_id` int(11) NOT NULL,
+  `hospital_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
   `operating_hours` varchar(100) DEFAULT NULL,
@@ -404,6 +404,7 @@ ALTER TABLE `health_demographics`
 -- Constraints for table `hospital`
 --
 ALTER TABLE `hospital`
+  MODIFY `hospital_id` int(11) NOT NULL AUTO_INCREMENT,
   ADD CONSTRAINT `hospital_ibfk_1` FOREIGN KEY (`care_type`) REFERENCES `professions` (`professions_id`);
 
 --

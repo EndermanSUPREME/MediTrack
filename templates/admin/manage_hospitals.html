@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Hospitals</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'admin/navbar.html' %}
+
+    <div class="container mt-4">
+        <h1 class="text-center">Manage Hospitals</h1>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Add Hospital Form -->
+        <section class="mb-4">
+            <h2>Add Hospital</h2>
+            <form method="POST" action="{{ url_for('admin_routes.add_hospital') }}">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Hospital Name:</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location:</label>
+                    <input type="text" id="location" name="location" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="operating_hours" class="form-label">Operating Hours:</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="start_hour" class="form-label">Start Time:</label>
+                            <div class="input-group">
+                                <select id="start_hour" name="start_hour" class="form-select" required>
+                                    {% for hour in range(1, 13) %}
+                                    <option value="{{ hour }}">{{ '%02d'|format(hour) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="start_minute" name="start_minute" class="form-select" required>
+                                    {% for minute in range(0, 60, 5) %}
+                                    <option value="{{ minute }}">{{ '%02d'|format(minute) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="start_period" name="start_period" class="form-select" required>
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="end_hour" class="form-label">End Time:</label>
+                            <div class="input-group">
+                                <select id="end_hour" name="end_hour" class="form-select" required>
+                                    {% for hour in range(1, 13) %}
+                                    <option value="{{ hour }}">{{ '%02d'|format(hour) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="end_minute" name="end_minute" class="form-select" required>
+                                    {% for minute in range(0, 60, 5) %}
+                                    <option value="{{ minute }}">{{ '%02d'|format(minute) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="end_period" name="end_period" class="form-select" required>
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="care_type" class="form-label">Care Type:</label>
+                    <select id="care_type" name="care_type" class="form-select" required>
+                        {% for profession in professions %}
+                        <option value="{{ profession.professions_id }}">{{ profession.type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Hospital</button>
+            </form>
+        </section>
+
+        <!-- Existing Hospitals -->
+        <section>
+            <h2>Existing Hospitals</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Location</th>
+                        <th>Operating Hours</th>
+                        <th>Care Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hospital in hospitals %}
+                    <tr>
+                        <td>{{ hospital.name }}</td>
+                        <td>{{ hospital.location }}</td>
+                        <td>{{ hospital.operating_hours }}</td>
+                        <td>{{ hospital.care_type }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_routes.remove_hospital') }}" class="d-inline">
+                                <input type="hidden" name="hospital_id" value="{{ hospital.hospital_id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
