@@ -406,3 +406,104 @@ def remove_hospital():
         print(f"Error: {e}")
 
     return redirect(url_for('admin_routes.manage_hospitals'))
+
+@admin_routes.route('/create_doctor', methods=['POST'])
+def create_doctor():
+    """Create a new doctor."""
+    if 'role' not in session or session['role'] != 'Admin':
+        flash('Unauthorized access. Please log in as an admin.', 'error')
+        return redirect(url_for('user_routes.login'))
+
+    first_name = request.form.get('doctor_first_name')
+    last_name = request.form.get('doctor_last_name')
+    phone = request.form.get('doctor_phone')
+    email = request.form.get('doctor_email')
+    speciality = request.form.get('speciality')
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    if not speciality:
+        flash('Speciality is required for doctors.', 'error')
+        return redirect(url_for('admin_routes.staff'))
+
+    try:
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cur = current_app.config['mysql'].connection.cursor()
+
+        # Validate the speciality exists in the `professions` table
+        cur.execute("SELECT professions_id FROM professions WHERE professions_id = %s", (speciality,))
+        if not cur.fetchone():
+            flash('Invalid speciality selected.', 'error')
+            return redirect(url_for('admin_routes.staff'))
+
+        # Insert into the `doctor` table
+        cur.execute("""
+            INSERT INTO doctor (first_name, last_name, speciality, phone, email)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (first_name, last_name, speciality, phone, email))
+        current_app.config['mysql'].connection.commit()
+        doctor_id = cur.lastrowid
+
+        # Insert into the `users` table
+        cur.execute("""
+            INSERT INTO users (username, password, role, doctor_id)
+            VALUES (%s, %s, %s, %s)
+        """, (username, hashed_password, 'Doctor', doctor_id))
+        current_app.config['mysql'].connection.commit()
+
+        cur.close()
+        flash('Doctor created successfully.', 'success')
+    except Exception as e:
+        flash('An error occurred while creating the doctor.', 'error')
+        print(f"Error: {e}")
+
+    return redirect(url_for('admin_routes.staff'))
+
+@admin_routes.route('/create_billing_staff', methods=['POST'])
+def create_billing_staff():
+    """Create a new billing staff member."""
+    if 'role' not in session or session['role'] != 'Admin':
+        flash('Unauthorized access. Please log in as an admin.', 'error')
+        return redirect(url_for('user_routes.login'))
+
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    try:
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cur = current_app.config['mysql'].connection.cursor()
+
+        # Insert into the `users` table
+        cur.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (%s, %s, %s)
+        """, (username, hashed_password, 'Billing Staff'))
+        current_app.config['mysql'].connection.commit()
+
+        cur.close()
+        flash('Billing staff created successfully.', 'success')
+    except Exception as e:
+        flash('An error occurred while creating the billing staff.', 'error')
+        print(f"Error: {e}")
+
+    return redirect(url_for('admin_routes.staff'))
+
+@admin_routes.route('/staff', methods=['GET'])
+def staff():
+    """Render the Manage Staff page."""
+    if 'role' not in session or session['role'] != 'Admin':
+        flash('Unauthorized access. Please log in as an admin.', 'error')
+        return redirect(url_for('user_routes.login'))
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        # Fetch all professions for the speciality dropdown
+        cur.execute("SELECT professions_id, type FROM professions")
+        professions = cur.fetchall()
+        cur.close()
+    except Exception as e:
+        flash('An error occurred while fetching professions.', 'error')
+        print(f"Error: {e}")
+        professions = []
+
+    return render_template('admin/staff.html', professions=professions)
