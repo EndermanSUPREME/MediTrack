@@ -11,6 +11,18 @@
     <div class="container mt-4">
         <h2 class="text-center">My Appointments</h2>
 
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         <!-- Upcoming Scheduled Appointments -->
         <h4>Upcoming Appointments</h4>
         {% if scheduled_appointments %}
@@ -22,6 +34,7 @@
                     <th>Hospital</th>
                     <th>Doctor</th>
                     <th>Notes</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,6 +45,12 @@
                     <td>{{ appointment.hospital_name }}</td>
                     <td>{{ appointment.doctor_name }}</td>
                     <td>{{ appointment.notes }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('patient_routes.cancel_appointment') }}" class="d-inline">
+                            <input type="hidden" name="appointment_id" value="{{ appointment.appointment_id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -46,44 +65,61 @@
             <div class="mb-3">
                 <label for="hospital_id" class="form-label">Select Hospital</label>
                 <select id="hospital_id" name="hospital_id" class="form-select" required>
-                    <option value="" disabled selected>Select Hospital</option>
+                    <option value="" disabled {% if not selected_hospital_id %}selected{% endif %}>Select Hospital</option>
                     {% for hospital in hospitals %}
-                    <option value="{{ hospital.hospital_id }}">{{ hospital.name }}</option>
+                    <option value="{{ hospital.hospital_id }}" {% if hospital.hospital_id == selected_hospital_id %}selected{% endif %}>
+                        {{ hospital.name }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
             <div class="mb-3">
                 <label for="doctor_id" class="form-label">Select Doctor</label>
-                <select id="doctor_id" name="doctor_id" class="form-select" required>
-                    <option value="" disabled selected>Select Doctor</option>
+                <select id="doctor_id" name="doctor_id" class="form-select" {% if not selected_hospital_id %}disabled{% endif %} required>
+                    <option value="" disabled {% if not selected_doctor_id %}selected{% endif %}>Select Doctor</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.doctor_id }}" {% if doctor.doctor_id == selected_doctor_id %}selected{% endif %}>
+                        {{ doctor.first_name }} {{ doctor.last_name }}
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="mb-3">
                 <label for="date" class="form-label">Select Date</label>
-                <input type="date" id="date" name="date" class="form-control" required>
+                <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}" {% if not selected_doctor_id %}disabled{% endif %} required>
             </div>
             <div class="mb-3">
                 <label for="time" class="form-label">Select Time</label>
-                <select id="time" name="time" class="form-select" required>
-                    <option value="" disabled selected>Select Time</option>
+                <select id="time" name="time" class="form-select" {% if not selected_date %}disabled{% endif %} required>
+                    <option value="" disabled {% if not selected_time %}selected{% endif %}>Select Time</option>
+                    {% for time in available_times %}
+                    <option value="{{ time }}" {% if time == selected_time %}selected{% endif %}>
+                        {{ time }}
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="mb-3">
                 <label for="notes" class="form-label">Notes</label>
-                <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+                <textarea id="notes" name="notes" class="form-control" rows="3">{{ selected_notes }}</textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+            <button type="submit" class="btn btn-primary" {% if not selected_time %}disabled{% endif %} id="submit_button">Schedule Appointment</button>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Fetch available doctors when a hospital is selected
-        document.getElementById('hospital_id').addEventListener('change', function() {
-            const hospitalId = this.value;
-            const doctorSelect = document.getElementById('doctor_id');
+        const hospitalSelect = document.getElementById('hospital_id');
+        const doctorSelect = document.getElementById('doctor_id');
+        const dateInput = document.getElementById('date');
+        const timeSelect = document.getElementById('time');
+        const submitButton = document.getElementById('submit_button');
+
+        // Enable doctor selection when a hospital is selected
+        hospitalSelect.addEventListener('change', function() {
+            doctorSelect.disabled = false;
             doctorSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
 
-            fetch(`/api/hospitals/${hospitalId}/doctors`)
+            fetch(`/api/hospitals/${hospitalSelect.value}/doctors`)
                 .then(response => response.json())
                 .then(data => {
                     doctorSelect.innerHTML = '<option value="" disabled selected>Select Doctor</option>';
@@ -100,44 +136,45 @@
                 });
         });
 
-        // Fetch available times when a doctor and date are selected
-        document.getElementById('date').addEventListener('change', fetchAvailableTimes);
-        document.getElementById('doctor_id').addEventListener('change', fetchAvailableTimes);
+        // Enable date selection when a doctor is selected
+        doctorSelect.addEventListener('change', function() {
+            dateInput.disabled = false;
+        });
 
-        function fetchAvailableTimes() {
-            const doctorId = document.getElementById('doctor_id').value;
-            const date = document.getElementById('date').value;
-            const hospitalId = document.getElementById('hospital_id').value;
-            const timeSelect = document.getElementById('time');
+        // Enable time selection when a date is selected
+        dateInput.addEventListener('change', function() {
+            timeSelect.disabled = false;
+            timeSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
 
-            if (doctorId && date && hospitalId) {
-                timeSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
-
-                fetch(`/api/doctors/${doctorId}/available-times?date=${date}&hospital_id=${hospitalId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        timeSelect.innerHTML = '<option value="" disabled selected>Select Time</option>';
-                        if (data.length === 0) {
+            fetch(`/api/doctors/${doctorSelect.value}/available-times?date=${dateInput.value}&hospital_id=${hospitalSelect.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    timeSelect.innerHTML = '<option value="" disabled selected>Select Time</option>';
+                    if (data.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'No available times';
+                        option.disabled = true;
+                        timeSelect.appendChild(option);
+                    } else {
+                        data.forEach(time => {
                             const option = document.createElement('option');
-                            option.value = '';
-                            option.textContent = 'No available times';
-                            option.disabled = true;
+                            option.value = time;
+                            option.textContent = time; // Already formatted in 12-hour format by the backend
                             timeSelect.appendChild(option);
-                        } else {
-                            data.forEach(time => {
-                                const option = document.createElement('option');
-                                option.value = time;
-                                option.textContent = time; // Already formatted in 12-hour format by the backend
-                                timeSelect.appendChild(option);
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching available times:', error);
-                        timeSelect.innerHTML = '<option value="" disabled selected>Error loading times</option>';
-                    });
-            }
-        }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching available times:', error);
+                    timeSelect.innerHTML = '<option value="" disabled selected>Error loading times</option>';
+                });
+        });
+
+        // Enable submit button when a time is selected
+        timeSelect.addEventListener('change', function() {
+            submitButton.disabled = false;
+        });
     </script>
 </body>
 </html>

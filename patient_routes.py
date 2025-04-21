@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request, current_app, jsonify
 import bcrypt
+from datetime import datetime
 
 patient_routes = Blueprint('patient_routes', __name__)
 
@@ -171,56 +172,54 @@ def patient_bills():
     return render_template('Patient/bills.html', bills=bills)
 
 @patient_routes.route('/dashboard/patient/health', methods=['GET', 'POST'])
-def patient_health():
+def update_health_demographics():
+    """Update health demographics for the logged-in patient."""
     if 'role' not in session or session['role'] != 'Patient':
-        flash('Unauthorized access. Please log in as a patient.')
+        flash('Unauthorized access. Please log in as a patient.', 'error')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('user_id')  # This corresponds to the `patient_id` in the `patient` table
-    health_data = None
+    patient_id = session.get('role_specific_id')
 
+    if request.method == 'POST':
+        date_of_birth = request.form.get('date_of_birth')
+        weight = request.form.get('weight')
+        height = request.form.get('height')
+
+        try:
+            cur = current_app.config['mysql'].connection.cursor()
+
+            # Update the date_of_birth, weight, and height fields
+            cur.execute("""
+                UPDATE health_demographics
+                SET date_of_birth = %s, weight = %s, height = %s, date_recorded = CURDATE()
+                WHERE patient_id = %s
+            """, (date_of_birth, weight, height, patient_id))
+            
+            # Commit the transaction
+            current_app.config['mysql'].connection.commit()
+            cur.close()
+
+            flash('Health demographics updated successfully.', 'success')
+        except Exception as e:
+            flash('An error occurred while updating health demographics.', 'error')
+            print(f"Error: {e}")
+
+        return redirect(url_for('patient_routes.update_health_demographics'))
+
+    # Fetch the current health demographics
     try:
         cur = current_app.config['mysql'].connection.cursor()
-
-        # Fetch the patient's health demographics
-        query_fetch_health = """
-            SELECT date_recorded, date_of_birth, weight, height, health_status
+        cur.execute("""
+            SELECT patient_id, date_recorded, date_of_birth, weight, height, health_status
             FROM health_demographics
             WHERE patient_id = %s
-        """
-        cur.execute(query_fetch_health, (patient_id,))
+        """, (patient_id,))
         health_data = cur.fetchone()
-
-        # Handle updates to health demographics
-        if request.method == 'POST':
-            weight = request.form.get('weight')
-            height = request.form.get('height')
-            health_status = request.form.get('health_status')
-
-            if health_data:
-                # Update existing health demographics
-                query_update_health = """
-                    UPDATE health_demographics
-                    SET weight = %s, height = %s, health_status = %s, date_recorded = CURDATE()
-                    WHERE patient_id = %s
-                """
-                cur.execute(query_update_health, (weight, height, health_status, patient_id))
-            else:
-                # Insert new health demographics
-                query_insert_health = """
-                    INSERT INTO health_demographics (patient_id, date_recorded, weight, height, health_status)
-                    VALUES (%s, CURDATE(), %s, %s, %s)
-                """
-                cur.execute(query_insert_health, (patient_id, weight, height, health_status))
-
-            current_app.config['mysql'].connection.commit()
-            flash('Health demographics updated successfully.')
-            return redirect(url_for('patient_routes.patient_health'))
-
         cur.close()
     except Exception as e:
-        flash('An error occurred while fetching or updating health demographics.')
+        flash('An error occurred while fetching health demographics.', 'error')
         print(f"Error: {e}")
+        health_data = None
 
     return render_template('Patient/health.html', health_data=health_data)
 
@@ -314,72 +313,98 @@ def generate_time_slots(start_time, end_time):
         current_time += timedelta(minutes=30)
     return slots
 
-@patient_routes.route('/dashboard/patient/appointments', methods=['GET', 'POST'])
-def patient_appointments():
+@patient_routes.route('/dashboard/patient/appointments', methods=['POST'])
+def schedule_appointment():
+    """Handle scheduling a new appointment."""
     if 'role' not in session or session['role'] != 'Patient':
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('user_id')  # This corresponds to the `patient_id` in the `patient` table
+    patient_id = session.get('role_specific_id')
+    hospital_id = request.form.get('hospital_id')
+    doctor_id = request.form.get('doctor_id')
+    date = request.form.get('date')
+    time = request.form.get('time')  # Time in 12-hour format (e.g., '04:30 PM')
+    notes = request.form.get('notes')
+
+    try:
+        # Convert time to 24-hour format
+        time_24_hour = datetime.strptime(time, '%I:%M %p').strftime('%H:%M:%S')
+
+        cur = current_app.config['mysql'].connection.cursor()
+        cur.execute("""
+            INSERT INTO appointment (date, time, status, notes, patient_id, doctor_id, hospital_id)
+            VALUES (%s, %s, 'Scheduled', %s, %s, %s, %s)
+        """, (date, time_24_hour, notes, patient_id, doctor_id, hospital_id))
+        current_app.config['mysql'].connection.commit()
+        cur.close()
+
+        flash('Appointment scheduled successfully!', 'success')
+    except Exception as e:
+        flash('An error occurred while scheduling the appointment.', 'error')
+        print(f"Error: {e}")
+
+    return redirect(url_for('patient_routes.view_appointments'))
+
+@patient_routes.route('/dashboard/patient/appointments', methods=['GET'])
+def view_appointments():
+    """View all appointments for the logged-in patient."""
+    if 'role' not in session or session['role'] != 'Patient':
+        flash('Unauthorized access. Please log in as a patient.')
+        return redirect(url_for('user_routes.login'))
+
+    patient_id = session.get('role_specific_id')
 
     try:
         cur = current_app.config['mysql'].connection.cursor()
-
-        # Fetch upcoming scheduled appointments
-        query_scheduled_appointments = """
-            SELECT a.appointment_id, a.date, a.time, a.notes, h.name AS hospital_name, 
-                   CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+        cur.execute("""
+            SELECT a.appointment_id, a.date, a.time, a.status, a.notes, 
+                   CONCAT(d.first_name, ' ', d.last_name) AS doctor_name, 
+                   h.name AS hospital_name
             FROM appointment a
-            JOIN hospital h ON a.hospital_id = h.hospital_id
             JOIN doctor d ON a.doctor_id = d.doctor_id
-            WHERE a.patient_id = %s AND a.status = 'Scheduled'
-        """
-        cur.execute(query_scheduled_appointments, (patient_id,))
+            JOIN hospital h ON a.hospital_id = h.hospital_id
+            WHERE a.patient_id = %s AND LOWER(a.status) = 'scheduled'
+        """, (patient_id,))
         scheduled_appointments = cur.fetchall()
 
-        # Fetch all hospitals
-        query_hospitals = "SELECT hospital_id, name FROM hospital"
-        cur.execute(query_hospitals)
+        cur.execute("SELECT hospital_id, name FROM hospital")
         hospitals = cur.fetchall()
-
-        # Handle scheduling a new appointment
-        if request.method == 'POST':
-            hospital_id = request.form.get('hospital_id')
-            doctor_id = request.form.get('doctor_id')
-            appointment_date = request.form.get('date')
-            appointment_time = request.form.get('time')
-            notes = request.form.get('notes')
-
-            if hospital_id and doctor_id and appointment_date and appointment_time:
-                # Check if the doctor is already booked at the selected date and time
-                query_check_availability = """
-                    SELECT COUNT(*) AS count
-                    FROM appointment
-                    WHERE doctor_id = %s AND date = %s AND time = %s AND status = 'Scheduled'
-                """
-                cur.execute(query_check_availability, (doctor_id, appointment_date, appointment_time))
-                result = cur.fetchone()
-
-                if result['count'] > 0:
-                    flash('The selected doctor is already booked at the chosen date and time. Please select a different time.')
-                else:
-                    try:
-                        cur.execute("""
-                            INSERT INTO appointment (date, time, status, notes, patient_id, doctor_id, hospital_id)
-                            VALUES (%s, %s, 'Scheduled', %s, %s, %s, %s)
-                        """, (appointment_date, appointment_time, notes, patient_id, doctor_id, hospital_id))
-                        current_app.config['mysql'].connection.commit()
-                        flash('Appointment scheduled successfully.')
-                        return redirect(url_for('patient_routes.patient_appointments'))
-                    except Exception as e:
-                        flash('An error occurred while scheduling the appointment.')
-                        print(f"Error: {e}")
-
         cur.close()
     except Exception as e:
-        flash('An error occurred while fetching appointment data.')
+        flash('An error occurred while fetching appointments.', 'error')
         print(f"Error: {e}")
         scheduled_appointments = []
         hospitals = []
 
     return render_template('Patient/appointments.html', scheduled_appointments=scheduled_appointments, hospitals=hospitals)
+
+@patient_routes.route('/dashboard/patient/appointments/cancel', methods=['POST'])
+def cancel_appointment():
+    """Cancel an appointment by setting its status to 'Canceled'."""
+    if 'role' not in session or session['role'] != 'Patient':
+        flash('Unauthorized access. Please log in as a patient.', 'error')
+        return redirect(url_for('user_routes.login'))
+
+    appointment_id = request.form.get('appointment_id')
+
+    if not appointment_id:
+        flash('Appointment ID is missing.', 'error')
+        return redirect(url_for('patient_routes.view_appointments'))
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+        cur.execute("""
+            UPDATE appointment
+            SET status = 'Canceled'
+            WHERE appointment_id = %s
+        """, (appointment_id,))
+        current_app.config['mysql'].connection.commit()
+        cur.close()
+
+        flash('Appointment canceled successfully.', 'success')
+    except Exception as e:
+        flash('An error occurred while canceling the appointment.', 'error')
+        print(f"Error: {e}")
+
+    return redirect(url_for('patient_routes.view_appointments'))

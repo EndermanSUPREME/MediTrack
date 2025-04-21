@@ -11,9 +11,50 @@
     <div class="container mt-4">
         <h2 class="text-center">My Health Demographics</h2>
 
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Display Current Health Demographics -->
+        <h4>Current Health Demographics</h4>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Patient ID</th>
+                    <th>Date Recorded</th>
+                    <th>Date of Birth</th>
+                    <th>Weight (kg)</th>
+                    <th>Height (cm)</th>
+                    <th>Health Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ health_data.patient_id if health_data else 'N/A' }}</td>
+                    <td>{{ health_data.date_recorded if health_data else 'N/A' }}</td>
+                    <td>{{ health_data.date_of_birth if health_data else 'N/A' }}</td>
+                    <td>{{ health_data.weight if health_data else 'N/A' }}</td>
+                    <td>{{ health_data.height if health_data else 'N/A' }}</td>
+                    <td>{{ health_data.health_status if health_data else 'N/A' }}</td>
+                </tr>
+            </tbody>
+        </table>
+
         <!-- Update Health Demographics -->
         <h4>Update Health Demographics</h4>
-        <form method="POST" class="mb-4">
+        <form method="POST" action="{{ url_for('patient_routes.update_health_demographics') }}" class="mb-4">
+            <div class="mb-3">
+                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" value="{{ health_data.date_of_birth if health_data else '' }}" required>
+            </div>
             <div class="mb-3">
                 <label for="weight" class="form-label">Weight (kg)</label>
                 <input type="number" id="weight" name="weight" class="form-control" value="{{ health_data.weight if health_data else '' }}" required>
@@ -21,9 +62,6 @@
             <div class="mb-3">
                 <label for="height" class="form-label">Height (cm)</label>
                 <input type="number" id="height" name="height" class="form-control" value="{{ health_data.height if health_data else '' }}" required>
-            </div>
-            <div class="mb-3">
-                <p class="form-control-plaintext">Health Stautus - {{ health_data.health_status if health_data else 'N/A' }}</p>
             </div>
             <button type="submit" class="btn btn-primary">Update</button>
         </form>
