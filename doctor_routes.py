@@ -182,9 +182,11 @@ def view_appointments():
         cur = current_app.config['mysql'].connection.cursor()
         cur.execute("""
             SELECT a.appointment_id AS id, a.date, a.time, a.status, a.notes, 
-                   CONCAT(p.first_name, ' ', p.last_name) AS patient_name, p.patient_id
+                   CONCAT(p.first_name, ' ', p.last_name) AS patient_name, p.patient_id,
+                   hd.health_status, hd.weight, hd.height, hd.date_of_birth
             FROM appointment a
             JOIN patient p ON a.patient_id = p.patient_id
+            LEFT JOIN health_demographics hd ON p.patient_id = hd.patient_id
             WHERE a.doctor_id = %s AND LOWER(a.status) NOT IN ('completed')
         """, (doctor_id,))
         appointments = cur.fetchall()
@@ -251,6 +253,41 @@ def complete_and_bill():
         flash('Appointment marked as complete and bill created successfully.', 'success')
     except Exception as e:
         flash('An error occurred while completing the appointment and creating the bill.', 'error')
+        print(f"Error: {e}")
+
+    return redirect(url_for('doctor_routes.view_appointments'))
+
+@doctor_routes.route('/dashboard/doctor/update_patient_health', methods=['POST'])
+def update_patient_health():
+    """Allow doctors to update a patient's health information."""
+    if 'role' not in session or session['role'] != 'Doctor':
+        flash('Unauthorized access. Please log in as a doctor.', 'error')
+        return redirect(url_for('user_routes.login'))
+
+    patient_id = request.form.get('patient_id')
+    health_status = request.form.get('health_status')
+    weight = request.form.get('weight')
+    height = request.form.get('height')
+
+    if not patient_id:
+        flash('Patient ID is missing.', 'error')
+        return redirect(url_for('doctor_routes.view_appointments'))
+
+    try:
+        cur = current_app.config['mysql'].connection.cursor()
+
+        # Update the patient's health information
+        cur.execute("""
+            UPDATE health_demographics
+            SET health_status = %s, weight = %s, height = %s, date_recorded = CURDATE()
+            WHERE patient_id = %s
+        """, (health_status, weight, height, patient_id))
+        current_app.config['mysql'].connection.commit()
+        cur.close()
+
+        flash('Patient health information updated successfully.', 'success')
+    except Exception as e:
+        flash('An error occurred while updating patient health information.', 'error')
         print(f"Error: {e}")
 
     return redirect(url_for('doctor_routes.view_appointments'))

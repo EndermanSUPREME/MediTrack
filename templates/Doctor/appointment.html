@@ -30,6 +30,7 @@
                     <th>Date</th>
                     <th>Time</th>
                     <th>Patient</th>
+                    <th>Date of Birth</th>
                     <th>Status</th>
                     <th>Notes</th>
                     <th>Action</th>
@@ -42,6 +43,7 @@
                     <td>{{ appointment.date }}</td>
                     <td>{{ appointment.time }}</td>
                     <td>{{ appointment.patient_name }}</td>
+                    <td>{{ appointment.date_of_birth if appointment.date_of_birth else 'N/A' }}</td>
                     <td>{{ appointment.status }}</td>
                     <td>{{ appointment.notes }}</td>
                     <td>
@@ -54,6 +56,27 @@
                             </div>
                             <button type="submit" class="btn btn-success btn-sm">Mark as Complete and Create Bill</button>
                         </form>
+                        <button class="btn btn-link btn-sm mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#updateHealthForm-{{ appointment.patient_id }}" aria-expanded="false" aria-controls="updateHealthForm-{{ appointment.patient_id }}">
+                            Update Health Info
+                        </button>
+                        <div class="collapse mt-2" id="updateHealthForm-{{ appointment.patient_id }}">
+                            <form method="POST" action="{{ url_for('doctor_routes.update_patient_health') }}">
+                                <input type="hidden" name="patient_id" value="{{ appointment.patient_id }}">
+                                <div class="mb-3">
+                                    <label for="health_status-{{ appointment.patient_id }}" class="form-label">Health Status:</label>
+                                    <input type="text" id="health_status-{{ appointment.patient_id }}" name="health_status" class="form-control" value="{{ appointment.health_status if appointment.health_status else '' }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="weight-{{ appointment.patient_id }}" class="form-label">Weight (kg):</label>
+                                    <input type="number" id="weight-{{ appointment.patient_id }}" name="weight" class="form-control" value="{{ appointment.weight if appointment.weight else '' }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="height-{{ appointment.patient_id }}" class="form-label">Height (cm):</label>
+                                    <input type="number" id="height-{{ appointment.patient_id }}" name="height" class="form-control" value="{{ appointment.height if appointment.height else '' }}" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            </form>
+                        </div>
                         {% endif %}
                     </td>
                 </tr>
