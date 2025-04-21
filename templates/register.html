@@ -61,20 +61,21 @@
                     <input type="text" id="doctor_last_name" name="doctor_last_name" class="form-control">
                 </div>
                 <div class="mb-3">
-                    <label for="speciality" class="form-label">Specialty:</label>
-                    <select id="speciality" name="speciality" class="form-select">
-                        {% for profession in professions %}
-                            <option value="{{ profession[0] }}">{{ profession[1] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
                     <label for="doctor_phone" class="form-label">Phone:</label>
                     <input type="text" id="doctor_phone" name="doctor_phone" class="form-control">
                 </div>
                 <div class="mb-3">
                     <label for="doctor_email" class="form-label">Email:</label>
                     <input type="email" id="doctor_email" name="doctor_email" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="speciality" class="form-label">Speciality:</label>
+                    <select class="form-control" id="speciality" name="speciality">
+                        <option value="">Select Speciality</option>
+                        {% for profession in professions %}
+                            <option value="{{ profession.professions_id }}">{{ profession.type }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
             <!-- Insurance-specific fields -->
