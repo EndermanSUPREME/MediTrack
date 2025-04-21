@@ -82,4 +82,4 @@ def show_patients():
     return render_template('check.html', patients=patients, users=users, doctors=doctors, insurances=insurances)
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

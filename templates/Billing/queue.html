@@ -37,10 +37,14 @@
                         <form method="POST" action="{{ url_for('billing_routes.set_insurance', bill_id=bill.id) }}">
                             <select name="insurance_id" class="form-select mb-2" required>
                                 <option value="" disabled selected>Select Insurance</option>
-                                {% for insurance in bill.insurances.split(',') %}
-                                {% set insurance_parts = insurance.split(':') %}
-                                <option value="{{ insurance_parts[0] }}">{{ insurance_parts[1] }}</option>
-                                {% endfor %}
+                                {% if bill.insurances %}
+                                    {% for insurance in bill.insurances.split(',') %}
+                                        {% set insurance_parts = insurance.split(':') %}
+                                        <option value="{{ insurance_parts[0] }}">{{ insurance_parts[1] }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="" disabled>No insurance available</option>
+                                {% endif %}
                             </select>
                             <button type="submit" class="btn btn-success btn-sm">Set to Insurance</button>
                         </form>

@@ -74,7 +74,7 @@ def patient_insurance():
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('user_id')  # This corresponds to the `patient_id` in the `patient` table
+    patient_id = session.get('role_specific_id')  # Use role_specific_id for patient_id
 
     try:
         cur = current_app.config['mysql'].connection.cursor()
@@ -150,10 +150,16 @@ def patient_bills():
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('user_id')  # This corresponds to the `patient_id` in the `patient` table
+    patient_id = session.get('role_specific_id')  # Use role_specific_id for patient_id
 
     try:
         cur = current_app.config['mysql'].connection.cursor()
+
+        # Fetch patient details
+        cur.execute("SELECT patient_id, first_name, last_name FROM patient WHERE patient_id = %s", (patient_id,))
+        patient = cur.fetchone()
+
+        # Fetch patient bills
         query = """
             SELECT pb.bill_id, bc.total_amount, bc.payment_status, 
                    bc.insurance_claimed, bc.insurance_covered
@@ -167,9 +173,10 @@ def patient_bills():
     except Exception as e:
         flash('An error occurred while fetching your bills.')
         print(f"Error: {e}")
+        patient = None
         bills = []
 
-    return render_template('Patient/bills.html', bills=bills)
+    return render_template('Patient/bills.html', patient=patient, bills=bills)
 
 @patient_routes.route('/dashboard/patient/health', methods=['GET', 'POST'])
 def update_health_demographics():

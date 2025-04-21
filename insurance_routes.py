@@ -117,62 +117,68 @@ def insurance_dashboard():
     return render_template('Insurance/insurdash.html', insurance_provider=insurance_provider, insurance_name=insurance_provider['insurance_name'])
 
 @insurance_routes.route('/dashboard/insurance/claims', methods=['GET', 'POST'])
-def insurance_claims():
+def manage_claims():
     if 'role' not in session or session['role'] != 'Insurance':
+        flash('Unauthorized access. Please log in as an insurance.')
         return redirect(url_for('user_routes.login'))
 
-    insurance_provider_id = session.get('role_specific_id')  # Ensure this matches the insurance provider's ID
-    cur = current_app.config['mysql'].connection.cursor()
-
-    # Fetch claims with payment_status = 'Insurance'
-    query = """
-        SELECT pb.bill_id, bc.total_amount, bc.payment_status, a.date
-        FROM patient_billing pb
-        JOIN billing_cost bc ON pb.billing_cost_id = bc.billing_cost_id
-        JOIN appointment a ON pb.appointment_id = a.appointment_id
-        WHERE pb.insurance_provider_id = %s AND bc.payment_status = 'Insurance'
-    """
-    params = [insurance_provider_id]
-
     try:
-        cur.execute(query, params)
+        cur = current_app.config['mysql'].connection.cursor()
+
+        if request.method == 'POST':
+            bill_id = request.form.get('bill_id')
+            if 'approve_claim' in request.form:
+                insurance_covered = request.form.get('insurance_covered')
+                if not insurance_covered:
+                    flash('Please enter a coverage amount to approve the claim.', 'danger')
+                else:
+                    try:
+                        cur.execute("""
+                            UPDATE billing_cost
+                            SET payment_status = 'Pending', insurance_covered = %s, insurance_claimed = 1
+                            WHERE billing_cost_id = (
+                                SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s
+                            )
+                        """, (insurance_covered, bill_id))
+                        current_app.config['mysql'].connection.commit()
+                        flash('Claim approved successfully.', 'success')
+                    except Exception as e:
+                        flash('An error occurred while approving the claim.', 'danger')
+                        print(f"Error: {e}")
+            elif 'deny_claim' in request.form:
+                try:
+                    cur.execute("""
+                        UPDATE billing_cost
+                        SET payment_status = 'Pending - Denied', 
+                            insurance_covered = 0, 
+                            insurance_claimed = 0
+                        WHERE billing_cost_id = (
+                            SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s
+                        )
+                    """, (bill_id,))
+                    current_app.config['mysql'].connection.commit()
+                    flash('Claim denied successfully.', 'success')
+                except Exception as e:
+                    flash('An error occurred while denying the claim.', 'danger')
+                    print(f"Error: {e}")
+
+        # Fetch claims with patient name and appointment notes
+        query = """
+            SELECT pb.bill_id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, 
+                   bc.total_amount, bc.payment_status, a.date, a.notes
+            FROM patient_billing pb
+            JOIN billing_cost bc ON pb.billing_cost_id = bc.billing_cost_id
+            JOIN patient p ON pb.patient_id = p.patient_id
+            JOIN appointment a ON pb.appointment_id = a.appointment_id
+            WHERE bc.payment_status = 'Insurance'
+        """
+        cur.execute(query)
         claims = cur.fetchall()
+        cur.close()
     except Exception as e:
-        flash('An error occurred while fetching claims.')
+        flash('An error occurred while fetching claims.', 'danger')
         print(f"Error: {e}")
         claims = []
-
-    # Handle updates to claims
-    if request.method == 'POST':
-        bill_id = request.form.get('bill_id')
-        try:
-            if 'approve_claim' in request.form:
-                # Approve the claim by setting insurance_covered and insurance_claimed
-                insurance_covered = request.form.get('insurance_covered')
-                cur.execute("""
-                    UPDATE billing_cost
-                    SET insurance_covered = %s, insurance_claimed = 1, payment_status = 'Pending'
-                    WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)
-                """, (insurance_covered, bill_id))
-                current_app.config['mysql'].connection.commit()
-                flash('Claim approved successfully.')
-            elif 'deny_claim' in request.form:
-                # Deny the claim by setting insurance_claimed to 0 and updating the status
-                cur.execute("""
-                    UPDATE billing_cost
-                    SET insurance_claimed = 0, payment_status = 'Pending - Denied'
-                    WHERE billing_cost_id = (SELECT billing_cost_id FROM patient_billing WHERE bill_id = %s)
-                """, (bill_id,))
-                current_app.config['mysql'].connection.commit()
-                flash('Claim denied successfully.')
-        except Exception as e:
-            print(f"Error: {e}")
-            flash('An error occurred while processing your request.')
-
-        # Redirect back to refresh the page and remove the processed claim
-        return redirect(url_for('insurance_routes.insurance_claims'))
-
-    cur.close()
 
     return render_template('Insurance/claims.html', claims=claims)
 
