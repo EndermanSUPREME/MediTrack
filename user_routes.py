@@ -87,118 +87,42 @@ def register():
 
         username = request.form['username']
         password = request.form['password']
-        role = request.form['role']
+        role = 'Patient'  # Hardcode the role as 'Patient'
 
-        if role == 'Patient':
-            first_name = request.form.get('patient_first_name')
-            last_name = request.form.get('patient_last_name')
-            phone = request.form.get('patient_phone')
-            email = request.form.get('patient_email')
-            address = request.form.get('patient_address')
-        elif role == 'Doctor':
-            first_name = request.form.get('doctor_first_name')
-            last_name = request.form.get('doctor_last_name')
-            phone = request.form.get('doctor_phone')
-            email = request.form.get('doctor_email')
-            speciality = request.form.get('speciality')
+        first_name = request.form.get('patient_first_name')
+        last_name = request.form.get('patient_last_name')
+        phone = request.form.get('patient_phone')
+        email = request.form.get('patient_email')
+        address = request.form.get('patient_address')
 
-            if not speciality or speciality == '':
-                flash('Speciality is required for doctors.')
-                return redirect(url_for('user_routes.register'))
+        try:
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cur = current_app.config['mysql'].connection.cursor()
 
-            try:
-                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                cur = current_app.config['mysql'].connection.cursor()
+            # Insert into the `patient` table
+            cur.execute("""
+                INSERT INTO patient (first_name, last_name, phone, email, address)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (first_name, last_name, phone, email, address))
+            current_app.config['mysql'].connection.commit()
+            patient_id = cur.lastrowid
 
-                # Validate the speciality exists in the `professions` table
-                cur.execute("SELECT professions_id FROM professions WHERE professions_id = %s", (speciality,))
-                if not cur.fetchone():
-                    flash('Invalid speciality selected.')
-                    return redirect(url_for('user_routes.register'))
+            # Insert into the `users` table
+            cur.execute("""
+                INSERT INTO users (username, password, role, patient_id)
+                VALUES (%s, %s, %s, %s)
+            """, (username, hashed_password, role, patient_id))
+            current_app.config['mysql'].connection.commit()
 
-                # Insert into the `doctor` table
-                cur.execute("""
-                    INSERT INTO doctor (first_name, last_name, speciality, phone, email)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (first_name, last_name, speciality, phone, email))
-                current_app.config['mysql'].connection.commit()
-                doctor_id = cur.lastrowid
-
-                # Insert into the `users` table
-                cur.execute("""
-                    INSERT INTO users (username, password, role, doctor_id)
-                    VALUES (%s, %s, %s, %s)
-                """, (username, hashed_password, role, doctor_id))
-                current_app.config['mysql'].connection.commit()
-
-                cur.close()
-                flash('Doctor registered successfully!')
-                return redirect(url_for('user_routes.login'))
-            except Exception as e:
-                print(f"Error during doctor registration: {e}")
-                flash('An error occurred during registration. Please try again.')
-                return redirect(url_for('user_routes.register'))
-        elif role == 'Insurance':
-            insurance_name = request.form.get('insurance_name')
-            contact_number = request.form.get('contact_number')
-            insurance_type = request.form.get('insurance_type')
-
-            try:
-                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                cur = current_app.config['mysql'].connection.cursor()
-
-                cur.execute("""
-                    INSERT INTO insurance_provider (insurance_name, contact_number, insurance_type)
-                    VALUES (%s, %s, %s)
-                """, (insurance_name, contact_number, insurance_type))
-                current_app.config['mysql'].connection.commit()
-                insurance_provider_id = cur.lastrowid
-
-                cur.execute("""
-                    INSERT INTO users (username, password, role, insurance_provider_id)
-                    VALUES (%s, %s, %s, %s)
-                """, (username, hashed_password, role, insurance_provider_id))
-                current_app.config['mysql'].connection.commit()
-
-                cur.close()
-                flash('Insurance provider registered successfully!')
-                return redirect(url_for('user_routes.login'))
-            except Exception as e:
-                print(f"Error during insurance provider registration: {e}")
-                flash('An error occurred during registration. Please try again.')
-                return redirect(url_for('user_routes.register'))
-        elif role == 'Billing Staff':
-            try:
-                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                cur = current_app.config['mysql'].connection.cursor()
-
-                cur.execute("""
-                    INSERT INTO users (username, password, role)
-                    VALUES (%s, %s, %s)
-                """, (username, hashed_password, role))
-                current_app.config['mysql'].connection.commit()
-
-                cur.close()
-                flash('Billing staff registered successfully!')
-                return redirect(url_for('user_routes.login'))
-            except Exception as e:
-                print(f"Error during billing staff registration: {e}")
-                flash('An error occurred during registration. Please try again.')
-                return redirect(url_for('user_routes.register'))
-        else:
-            flash('Invalid role or missing required fields.')
+            cur.close()
+            flash('Patient registered successfully!', 'success')
+            return redirect(url_for('user_routes.login'))
+        except Exception as e:
+            print(f"Error during patient registration: {e}")
+            flash('An error occurred during registration. Please try again.', 'error')
             return redirect(url_for('user_routes.register'))
 
-    else:
-        try:
-            cur = current_app.config['mysql'].connection.cursor()
-            cur.execute("SELECT professions_id, type FROM professions")
-            professions = cur.fetchall()
-            cur.close()
-        except Exception as e:
-            print(f"Error fetching professions: {e}")
-            professions = []
-        return render_template('register.html', professions=professions)
+    return render_template('register.html')
 
 @user_routes.route('/logout')
 def logout():

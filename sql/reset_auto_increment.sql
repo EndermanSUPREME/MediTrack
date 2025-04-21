@@ -1,1 +1,0 @@
-ALTER TABLE doctor AUTO_INCREMENT = 8;

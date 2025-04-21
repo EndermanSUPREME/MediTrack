@@ -3,6 +3,85 @@ import bcrypt
 
 insurance_routes = Blueprint('insurance_routes', __name__)
 
+@insurance_routes.route('/index', methods=['GET'])
+def insurance_index():
+    """Render the insurance index page."""
+    return render_template('Insurance/index.html')
+
+@insurance_routes.route('/register', methods=['GET', 'POST'])
+def insurance_register():
+    """Handle insurance provider registration."""
+    if request.method == 'POST':
+        insurance_name = request.form.get('insurance_name')
+        contact_number = request.form.get('contact_number')
+        insurance_type = request.form.get('insurance_type')
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        try:
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cur = current_app.config['mysql'].connection.cursor()
+
+            # Insert into the `insurance_provider` table
+            cur.execute("""
+                INSERT INTO insurance_provider (insurance_name, contact_number, insurance_type)
+                VALUES (%s, %s, %s)
+            """, (insurance_name, contact_number, insurance_type))
+            current_app.config['mysql'].connection.commit()
+            insurance_provider_id = cur.lastrowid
+
+            # Insert into the `users` table
+            cur.execute("""
+                INSERT INTO users (username, password, role, insurance_provider_id)
+                VALUES (%s, %s, %s, %s)
+            """, (username, hashed_password, 'Insurance', insurance_provider_id))
+            current_app.config['mysql'].connection.commit()
+
+            cur.close()
+            flash('Insurance provider registered successfully!', 'success')
+            return redirect(url_for('insurance_routes.insurance_login'))  # Redirect to the insurance login page
+        except Exception as e:
+            flash('An error occurred during registration. Please try again.', 'error')
+            print(f"Error during insurance registration: {e}")
+            return redirect(url_for('insurance_routes.insurance_register'))
+
+    return render_template('Insurance/register.html')
+
+@insurance_routes.route('/login', methods=['GET', 'POST'])
+def insurance_login():
+    """Handle login for insurance providers."""
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        try:
+            cur = current_app.config['mysql'].connection.cursor()
+            cur.execute("""
+                SELECT id, password, role, insurance_provider_id
+                FROM users
+                WHERE username = %s AND role = 'Insurance'
+            """, (username,))
+            user = cur.fetchone()
+            cur.close()
+
+            if user:
+                stored_password = user['password']
+                if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
+                    session['user_id'] = user['id']
+                    session['role'] = user['role']
+                    session['role_specific_id'] = user['insurance_provider_id']
+                    flash('Login successful!', 'success')
+                    return redirect(url_for('insurance_routes.insurance_dashboard'))
+                else:
+                    flash('Invalid password.', 'error')
+            else:
+                flash('Username not found or not an insurance provider.', 'error')
+        except Exception as e:
+            flash('An error occurred during login. Please try again.', 'error')
+            print(f"Error during insurance login: {e}")
+
+    return render_template('Insurance/login.html')
+
 @insurance_routes.route('/dashboard/insurance', methods=['GET', 'POST'])
 def insurance_dashboard():
     if 'role' not in session or session['role'] != 'Insurance':

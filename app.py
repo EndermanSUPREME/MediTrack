@@ -30,7 +30,7 @@ app.secret_key = '24932781d8d03f8a7ff6fdff8d8780f1'
 app.register_blueprint(user_routes, url_prefix='/user')
 app.register_blueprint(doctor_routes)
 app.register_blueprint(patient_routes)
-app.register_blueprint(insurance_routes)
+app.register_blueprint(insurance_routes, url_prefix='/insurance')  # Ensure the prefix is set to '/insurance'
 app.register_blueprint(billing_routes)
 app.register_blueprint(admin_routes, url_prefix='/admin')  # Ensure admin_routes uses the /admin prefix
 
