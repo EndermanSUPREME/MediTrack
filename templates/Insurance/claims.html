@@ -55,7 +55,7 @@
             </thead>
             <tbody>
                 {% for claim in claims %}
-                {% if claim.payment_status == 'Insurance' %}
+                {% if claim.payment_status == 'Insurance' and claim.insurance_provider_id == session['role_specific_id'] %}
                 <tr>
                     <td>{{ claim.bill_id }}</td>
                     <td>{{ claim.patient_name }}</td>
