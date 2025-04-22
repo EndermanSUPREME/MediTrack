@@ -7,6 +7,8 @@ found as file ER.png
 ![ER Diagram](./sql/ER.png)
 
 # SQL Information
+All sql data can be found in the folder labeled 'sql'
+
 Our database schema is stored in meditrack(1).sql
 
 A version with example data exists in meditrack(wdata).sql
@@ -20,10 +22,9 @@ A version with example data exists in meditrack(wdata).sql
 However there structure is not dependent on the data outside of the specific fields like id, time, etc being specific instances
 
 # Compiling the app & connecting database
+The Database should be connected automatically
 
-open XAMPP & start **both** apache & mysql
-
-create a new database called 'meditrack' and use the import tool to import meditrack(wdata).sql
+*Note It will only work while you are on Kent State's Network* - there is a local version in static (meditrack(As of 4-22-25))
 
 run the flask app with:
 ```
