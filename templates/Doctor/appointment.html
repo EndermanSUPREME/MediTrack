@@ -52,7 +52,7 @@
                             <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
                             <div class="mb-3">
                                 <label for="notes-{{ appointment.id }}" class="form-label">Notes:</label>
-                                <textarea id="notes-{{ appointment.id }}" name="notes" class="form-control" required>{{ appointment.notes }}</textarea>
+                                <textarea id="notes-{{ appointment.id }}" name="notes" class="form-control" maxlength="200" required>{{ appointment.notes }}</textarea>
                             </div>
                             <button type="submit" class="btn btn-success btn-sm">Mark as Complete and Create Bill</button>
                         </form>
