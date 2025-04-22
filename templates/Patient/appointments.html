@@ -101,7 +101,7 @@
             </div>
             <div class="mb-3">
                 <label for="notes" class="form-label">Notes</label>
-                <textarea id="notes" name="notes" class="form-control" rows="3">{{ selected_notes }}</textarea>
+                <textarea id="notes" name="notes" class="form-control" rows="3" maxlength="200">{{ selected_notes }}</textarea>
             </div>
             <button type="submit" class="btn btn-primary" {% if not selected_time %}disabled{% endif %} id="submit_button">Schedule Appointment</button>
         </form>
