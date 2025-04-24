@@ -39,7 +39,7 @@ def insurance_register():
 
             cur.close()
             flash('Insurance provider registered successfully!', 'success')
-            return redirect(url_for('insurance_routes.insurance_login'))  # Redirect to the insurance login page
+            return redirect(url_for('insurance_routes.insurance_login'))
         except Exception as e:
             flash('An error occurred during registration. Please try again.', 'error')
             print(f"Error during insurance registration: {e}")
@@ -88,7 +88,7 @@ def insurance_dashboard():
         flash('Unauthorized access. Please log in as an insurance provider.')
         return redirect(url_for('user_routes.login'))
 
-    insurance_provider_id = session.get('role_specific_id')  # Use the role-specific ID for insurance operations
+    insurance_provider_id = session.get('role_specific_id')
 
     if request.method == 'POST':
         # Update insurance provider information
@@ -122,7 +122,7 @@ def manage_claims():
         flash('Unauthorized access. Please log in as an insurance.')
         return redirect(url_for('user_routes.login'))
 
-    insurance_provider_id = session.get('role_specific_id')  # Use the logged-in insurance provider's ID
+    insurance_provider_id = session.get('role_specific_id') 
 
     try:
         cur = current_app.config['mysql'].connection.cursor()
@@ -195,7 +195,7 @@ def update_insurance_credentials():
         flash('Unauthorized access. Please log in as an insurance provider.')
         return redirect(url_for('user_routes.login'))
 
-    user_id = session.get('user_id')  # This corresponds to the `id` in the `users` table
+    user_id = session.get('user_id')
     new_username = request.form.get('username')
     new_password = request.form.get('password')
 

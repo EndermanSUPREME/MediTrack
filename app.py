@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, session, redirect, flash, request
-from flask_mysqldb import MySQL, MySQLdb  # Import MySQLdb for DictCursor
+from flask_mysqldb import MySQL, MySQLdb 
 from user_routes import user_routes  # Import the user_routes blueprint
 from doctor_routes import doctor_routes  # Import the doctor_routes blueprint
 from patient_routes import patient_routes  # Import the patient_routes blueprint
@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# MySQL connection configuration for XAMPP
+
 app.config['MYSQL_HOST'] = '10.37.1.103'
 app.config['MYSQL_USER'] = 'yoyojesus'
 app.config['MYSQL_PASSWORD'] = 'veryOkIrTIcA'
@@ -19,7 +19,7 @@ app.config['MYSQL_DB'] = 'meditrack'
 mysql = MySQL(app)
 app.config['mysql'] = mysql
 
-# Enable DictCursor for all queries
+# Enable DictCursor for all queries - helps return results as dictionaries
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 user_routes.mysql = mysql
@@ -30,9 +30,9 @@ app.secret_key = '24932781d8d03f8a7ff6fdff8d8780f1'
 app.register_blueprint(user_routes, url_prefix='/user')
 app.register_blueprint(doctor_routes)
 app.register_blueprint(patient_routes)
-app.register_blueprint(insurance_routes, url_prefix='/insurance')  # Ensure the prefix is set to '/insurance'
+app.register_blueprint(insurance_routes, url_prefix='/insurance')
 app.register_blueprint(billing_routes)
-app.register_blueprint(admin_routes, url_prefix='/admin')  # Ensure admin_routes uses the /admin prefix
+app.register_blueprint(admin_routes, url_prefix='/admin')
 
 @app.template_filter('format_time_12_hour')
 def format_time_12_hour(value):

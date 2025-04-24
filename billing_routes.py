@@ -17,7 +17,7 @@ def update_billing_credentials():
         flash('Unauthorized access. Please log in as billing staff.')
         return redirect(url_for('user_routes.login'))
 
-    user_id = session.get('user_id')  # This corresponds to the `id` in the `users` table
+    user_id = session.get('user_id')
     new_username = request.form.get('username')
     new_password = request.form.get('password')
 

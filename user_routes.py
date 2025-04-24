@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 import bcrypt
-from admin_routes import admin_routes  # Import the admin_routes blueprint
+from admin_routes import admin_routes
 
 user_routes = Blueprint('user_routes', __name__)
 
@@ -16,15 +16,15 @@ def redirect_to_dashboard(role):
     """Redirect user to the appropriate dashboard based on their role."""
     try:
         if role == 'Doctor':
-            return redirect(url_for('doctor_routes.doctor_dashboard'))  # Updated blueprint reference
+            return redirect(url_for('doctor_routes.doctor_dashboard'))
         elif role == 'Billing Staff':
-            return redirect(url_for('billing_routes.billing_dashboard'))  # Updated blueprint reference
+            return redirect(url_for('billing_routes.billing_dashboard'))  
         elif role == 'Patient':
-            return redirect(url_for('patient_routes.patient_dashboard'))  # Updated blueprint reference
+            return redirect(url_for('patient_routes.patient_dashboard'))  
         elif role == 'Insurance':
-            return redirect(url_for('insurance_routes.insurance_dashboard'))  # Updated blueprint reference
+            return redirect(url_for('insurance_routes.insurance_dashboard')) 
         elif role == 'Admin':  # Added case for Admin role
-            return redirect(url_for('admin_routes.admin_dashboard'))  # Updated blueprint reference
+            return redirect(url_for('admin_routes.admin_dashboard'))
         else:
             flash('Invalid role. Please contact support.')
             return redirect(url_for('user_routes.login'))
@@ -87,7 +87,7 @@ def register():
 
         username = request.form['username']
         password = request.form['password']
-        role = 'Patient'  # Hardcode the role as 'Patient'
+        role = 'Patient'  
 
         first_name = request.form.get('patient_first_name')
         last_name = request.form.get('patient_last_name')

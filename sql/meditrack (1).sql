@@ -171,6 +171,22 @@ CREATE TABLE `professions` (
   `type` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` enum('Patient','Doctor','Billing Staff','Insurance','Admin') NOT NULL,
+  `doctor_id` int DEFAULT NULL,
+  `patient_id` int DEFAULT NULL,
+  `insurance_provider_id` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --

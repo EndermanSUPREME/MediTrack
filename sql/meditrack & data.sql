@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Apr 22, 2025 at 04:25 PM
+-- Generation Time: Apr 24, 2025 at 06:09 PM
 -- Server version: 9.3.0
 -- PHP Version: 8.2.28
 
@@ -32,7 +32,7 @@ CREATE TABLE `appointment` (
   `date` date DEFAULT NULL,
   `time` time DEFAULT NULL,
   `status` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `notes` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `notes` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `patient_id` int DEFAULT NULL,
   `doctor_id` int DEFAULT NULL,
   `hospital_id` int DEFAULT NULL
@@ -55,7 +55,10 @@ INSERT INTO `appointment` (`appointment_id`, `date`, `time`, `status`, `notes`, 
 (10, '2025-04-26', '15:30:00', 'Scheduled', 'Blood Draw', 12, 1, 1),
 (11, '2025-04-30', '11:00:00', 'Scheduled', 'Physical', 12, 2, 2),
 (12, '2025-04-23', '19:00:00', 'Completed', 'Chemo Treatment - 1st round', 12, 3, 1),
-(13, '2025-04-29', '08:00:00', 'Scheduled', 'brain hurty', 12, 3, 1);
+(13, '2025-04-29', '08:00:00', 'Scheduled', 'brain hurty', 12, 3, 1),
+(14, '2025-05-08', '10:00:00', 'Completed', 'Follow-up consultation', 1, 1, 1),
+(15, '2025-05-09', '11:30:00', 'Completed', 'Routine dental cleaning', 2, 2, 2),
+(16, '2025-05-10', '14:00:00', 'Completed', 'Eye checkup', 1, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -76,20 +79,18 @@ CREATE TABLE `billing_cost` (
 --
 
 INSERT INTO `billing_cost` (`billing_cost_id`, `total_amount`, `payment_status`, `insurance_claimed`, `insurance_covered`) VALUES
-(1, 200, 'Pending - Denied', 0, 0),
+(1, 200, 'Insurance', 0, 0),
 (2, 300, 'Paid', 1, 225),
-(3, 500, 'Paid', 1, 400),
-(4, 150, 'Paid', 1, 100),
-(5, 200, 'Insurance', 0, 0),
-(6, 450, 'Pending - Denied', 0, 0),
 (7, 300, 'Paid', 1, 250),
 (8, 150, 'Pending', 1, 100),
 (9, 300, 'Pending', 1, 100),
 (10, 450, 'Pending', 1, 350),
 (11, 200, 'Paid', 1, 150),
-(19, 1, 'Pending', 1, 2),
 (20, 300, 'Pending', 1, 275),
-(21, 150, 'Paid', 1, 150);
+(21, 150, 'Insurance', 0, 0),
+(22, 250, 'Paid', 1, 200),
+(23, 180, 'Paid', 1, 150),
+(24, 300, 'Paid', 1, 250);
 
 -- --------------------------------------------------------
 
@@ -251,20 +252,18 @@ CREATE TABLE `patient_billing` (
 --
 
 INSERT INTO `patient_billing` (`bill_id`, `billing_cost_id`, `appointment_id`, `patient_id`, `insurance_provider_id`) VALUES
-(1, 1, 1, 1, 1),
+(1, 1, 1, 1, 15),
 (2, 2, 2, 2, 1),
-(3, 3, 1, 1, 1),
-(4, 4, 2, 2, 2),
-(5, 5, 1, 1, 7),
-(6, 6, 2, 2, 1),
 (7, 7, 3, 1, 1),
 (8, 8, 4, 2, 2),
 (9, 9, 5, 1, 1),
 (10, 10, 6, 1, 3),
 (11, 11, 7, 2, 1),
-(16, 19, 5, 1, 1),
 (17, 20, 8, 12, 1),
-(18, 21, 12, 12, 1);
+(18, 21, 12, 12, 1),
+(19, 22, 14, 1, 1),
+(20, 23, 15, 2, 1),
+(21, 24, 16, 1, 3);
 
 -- --------------------------------------------------------
 
@@ -286,7 +285,8 @@ INSERT INTO `patient_insurance` (`patient_id`, `insurance_id`) VALUES
 (2, 1),
 (12, 1),
 (12, 3),
-(2, 4);
+(2, 4),
+(1, 15);
 
 -- --------------------------------------------------------
 
@@ -325,7 +325,7 @@ CREATE TABLE `users` (
   `doctor_id` int DEFAULT NULL,
   `patient_id` int DEFAULT NULL,
   `insurance_provider_id` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
@@ -447,13 +447,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `appointment`
 --
 ALTER TABLE `appointment`
-  MODIFY `appointment_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `appointment_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `billing_cost`
 --
 ALTER TABLE `billing_cost`
-  MODIFY `billing_cost_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `billing_cost_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `doctor`
@@ -483,7 +483,7 @@ ALTER TABLE `patient`
 -- AUTO_INCREMENT for table `patient_billing`
 --
 ALTER TABLE `patient_billing`
-  MODIFY `bill_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `bill_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `professions`

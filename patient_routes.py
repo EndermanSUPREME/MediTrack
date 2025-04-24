@@ -10,7 +10,7 @@ def patient_dashboard():
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('role_specific_id')  # Use the role-specific ID for patient operations
+    patient_id = session.get('role_specific_id')
 
     if request.method == 'POST':
         # Update patient information
@@ -47,7 +47,7 @@ def update_patient_credentials():
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    user_id = session.get('user_id')  # This now corresponds to the `id` in the `users` table
+    user_id = session.get('user_id') 
     print("User ID (from users table): ", user_id)
     new_username = request.form.get('username')
     new_password = request.form.get('password')
@@ -74,7 +74,7 @@ def patient_insurance():
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('role_specific_id')  # Use role_specific_id for patient_id
+    patient_id = session.get('role_specific_id') 
 
     try:
         cur = current_app.config['mysql'].connection.cursor()
@@ -150,7 +150,7 @@ def patient_bills():
         flash('Unauthorized access. Please log in as a patient.')
         return redirect(url_for('user_routes.login'))
 
-    patient_id = session.get('role_specific_id')  # Use role_specific_id for patient_id
+    patient_id = session.get('role_specific_id')
 
     try:
         cur = current_app.config['mysql'].connection.cursor()
@@ -251,7 +251,7 @@ def get_doctors_by_hospital(hospital_id):
 @patient_routes.route('/api/doctors/<int:doctor_id>/available-times', methods=['GET'])
 def get_available_times(doctor_id):
     date = request.args.get('date')
-    hospital_id = request.args.get('hospital_id')  # Pass the hospital ID from the frontend
+    hospital_id = request.args.get('hospital_id')
     if not date or not hospital_id:
         return jsonify([]), 400
 
@@ -331,7 +331,7 @@ def schedule_appointment():
     hospital_id = request.form.get('hospital_id')
     doctor_id = request.form.get('doctor_id')
     date = request.form.get('date')
-    time = request.form.get('time')  # Time in 12-hour format (e.g., '04:30 PM')
+    time = request.form.get('time')
     notes = request.form.get('notes')
 
     try:

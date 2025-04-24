@@ -9,7 +9,7 @@ def doctor_dashboard():
         flash('Unauthorized access. Please log in as a doctor.')
         return redirect(url_for('user_routes.login'))
 
-    doctor_id = session.get('role_specific_id')  # Use the role-specific ID for doctor operations
+    doctor_id = session.get('role_specific_id')
 
     if request.method == 'POST':
         # Update doctor information
@@ -45,7 +45,7 @@ def update_doctor_credentials():
         flash('Unauthorized access. Please log in as a doctor.')
         return redirect(url_for('user_routes.login'))
 
-    user_id = session.get('user_id')  # This corresponds to the `id` in the `users` table
+    user_id = session.get('user_id')
     new_username = request.form.get('username')
     new_password = request.form.get('password')
 
@@ -65,7 +65,7 @@ def update_doctor_credentials():
 
     return redirect(url_for('doctor_routes.doctor_dashboard'))
 
-@doctor_routes.route('/dashboard/doctor/hospital', methods=['GET', 'POST'])  # Added leading slash
+@doctor_routes.route('/dashboard/doctor/hospital', methods=['GET', 'POST'])
 def manage_hospitals():
     """Manage hospitals assigned to the doctor."""
     if 'role' not in session or session['role'] != 'Doctor':
@@ -99,7 +99,7 @@ def manage_hospitals():
 
     return render_template('Doctor/hospital.html', assigned_hospitals=assigned_hospitals, available_hospitals=available_hospitals)
 
-@doctor_routes.route('/dashboard/doctor/hospitals/add', methods=['POST'])  # Added leading slash
+@doctor_routes.route('/dashboard/doctor/hospitals/add', methods=['POST'])
 def add_hospital():
     """Add the doctor to a hospital."""
     if 'role' not in session or session['role'] != 'Doctor':
@@ -124,7 +124,7 @@ def add_hospital():
 
     return redirect(url_for('doctor_routes.manage_hospitals'))
 
-@doctor_routes.route('/dashboard/doctor/hospitals/remove', methods=['POST'])  # Added leading slash
+@doctor_routes.route('/dashboard/doctor/hospitals/remove', methods=['POST'])
 def remove_hospital():
     """Remove the doctor from a hospital."""
     if 'role' not in session or session['role'] != 'Doctor':
