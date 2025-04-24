@@ -22,6 +22,7 @@ A version with example data exists in meditrack(wdata).sql
 However there structure is not dependent on the data outside of the specific fields like id, time, etc being specific instances
 
 # Compiling the app & connecting database
+You must run ```pip install -r requirements.txt``` <br><br>
 The Database should be connected automatically
 
 *Note It will only work while you are on Kent State's Network* - there is a local version in static (meditrack(As of 4-22-25))
