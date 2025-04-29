@@ -51,7 +51,7 @@ def format_time_12_hour(value):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', background_image=url_for('static', filename='background.jpg'))
 
 @app.route('/datacheck')
 def show_patients():
